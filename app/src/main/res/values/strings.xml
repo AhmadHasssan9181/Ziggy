@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Ziggy</string>
+    <string name="default_web_client_id">https://ziggy-34414-default-rtdb.firebaseio.com/</string>
+</resources>

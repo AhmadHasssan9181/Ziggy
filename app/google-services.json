@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "111535306384",
+    "project_id": "ziggy-34414",
+    "storage_bucket": "ziggy-34414.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111535306384:android:04b85719ee7c0901158a15",
+        "android_client_info": {
+          "package_name": "com.noobdev.Zibby"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "111535306384-j3i953vabrq5ej8nq19pg16vul4c4dav.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noobdev.Zibby",
+            "certificate_hash": "36c04f11578e941222456cae424466886dbc8d40"
+          }
+        },
+        {
+          "client_id": "111535306384-eq62h4ecc7qdlcsbb0597m1dm6nf5c19.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJp5zqdKgRPPQsGcLwZTUvq9nS4l5f8Kk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "111535306384-eq62h4ecc7qdlcsbb0597m1dm6nf5c19.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
