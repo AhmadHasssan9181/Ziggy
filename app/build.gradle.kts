@@ -45,7 +45,6 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation("com.google.ar:core:1.47.0")
     implementation("androidx.navigation:navigation-compose:2.7.3")
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -63,13 +62,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     val camerax_version = "1.4.1"
-    implementation ("androidx.camera:camera-core:${camerax_version}")
-    implementation ("androidx.camera:camera-camera2:${camerax_version}")
-    implementation ("androidx.camera:camera-lifecycle:${camerax_version}")
-    implementation ("androidx.camera:camera-video:${camerax_version}")
-    implementation ("androidx.camera:camera-view:${camerax_version}")
-    implementation ("androidx.camera:camera-mlkit-vision:${camerax_version}")
-    implementation ("androidx.camera:camera-extensions:${camerax_version}")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
