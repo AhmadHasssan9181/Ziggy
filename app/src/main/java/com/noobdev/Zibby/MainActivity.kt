@@ -1,5 +1,6 @@
 package com.noobdev.Zibby
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,11 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.noobdev.Zibby.ui.theme.ZiggyTheme
-import android.Manifest
-import androidx.compose.runtime.*
-import com.google.accompanist.permissions.*
 import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
 
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         MapLibre.getInstance(
             this,
-            "",
+            "U7fg3KGqTysSBCZJpaNH",
             WellKnownTileServer.MapLibre
         )
         enableEdgeToEdge()

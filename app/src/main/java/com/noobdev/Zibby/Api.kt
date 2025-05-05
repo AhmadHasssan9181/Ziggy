@@ -1,13 +1,16 @@
 package com.noobdev.Zibby
 
 import android.util.Log
-import retrofit2.*
+import com.google.maps.android.PolyUtil
+import org.maplibre.geojson.LineString
+import org.maplibre.geojson.Point
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
-import org.maplibre.geojson.Point
-import org.maplibre.geojson.LineString
-import com.google.maps.android.PolyUtil
 
 // 1. Define the API interface
 interface ORSApiService {
@@ -26,7 +29,7 @@ data class Route(val geometry: String)
 // 3. Set up Retrofit instance
 object ORSClient {
     private const val BASE_URL = "https://api.openrouteservice.org/"
-    private const val API_KEY = ""
+    private const val API_KEY = "5b3ce3597851110001cf6248e0d751b5a82b4e0db86f8b500ada1f82"
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
