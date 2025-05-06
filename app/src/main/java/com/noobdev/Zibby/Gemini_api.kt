@@ -10,7 +10,6 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-// API interface for Gemini
 interface GeminiApiService {
         @Headers("Content-Type: application/json")
         @POST("v1beta/models/gemini-pro:generateContent")
@@ -20,7 +19,6 @@ interface GeminiApiService {
         ): Call<GeminiResponse>
 }
 
-// Request model
 data class GeminiRequest(
         val contents: List<Content>
 )
@@ -33,7 +31,6 @@ data class Part(
         val text: String
 )
 
-// Response models
 data class GeminiResponse(
         val candidates: List<Candidate>? = null
 )
@@ -42,7 +39,6 @@ data class Candidate(
         val content: Content? = null
 )
 
-// Singleton for API service
 object GeminiClient {
         private const val BASE_URL = "https://generativelanguage.googleapis.com/"
 
@@ -54,9 +50,7 @@ object GeminiClient {
         val service: GeminiApiService = retrofit.create(GeminiApiService::class.java)
 }
 
-// Function to make an API call
 fun api_call(apiKey: String, prompt: String, callback: (GeminiResponse?) -> Unit) {
-        // Create request body
         val request = GeminiRequest(
                 contents = listOf(
                         Content(
@@ -67,7 +61,6 @@ fun api_call(apiKey: String, prompt: String, callback: (GeminiResponse?) -> Unit
                 )
         )
 
-        // Make API call
         GeminiClient.service.generateContent(request, apiKey).enqueue(object : Callback<GeminiResponse> {
                 override fun onResponse(call: Call<GeminiResponse>, response: Response<GeminiResponse>) {
                         if (response.isSuccessful) {
@@ -85,7 +78,6 @@ fun api_call(apiKey: String, prompt: String, callback: (GeminiResponse?) -> Unit
         })
 }
 
-// Function to parse response
 fun response(geminiResponse: GeminiResponse?): String {
         return geminiResponse?.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text ?: "No response"
 }

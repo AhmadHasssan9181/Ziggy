@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.noobdev.Zibby.screens.Forgot
+import com.noobdev.Zibby.screens.Home
+import com.noobdev.Zibby.screens.Login
+import com.noobdev.Zibby.screens.Signup
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
