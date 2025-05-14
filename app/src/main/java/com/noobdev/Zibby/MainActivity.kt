@@ -21,6 +21,7 @@ import org.maplibre.android.WellKnownTileServer
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        GeminiApi.init("AIzaSyDyTI5WDBNYwHbAYCESR2eagfmYSzf97xw")
         MapLibre.getInstance(
             this,
             "U7fg3KGqTysSBCZJpaNH",

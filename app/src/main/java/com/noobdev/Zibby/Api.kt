@@ -30,18 +30,15 @@ data class Route(val geometry: String)
 object ORSClient {
     private const val BASE_URL = "https://api.openrouteservice.org/"
     private const val API_KEY = "5b3ce3597851110001cf6248e0d751b5a82b4e0db86f8b500ada1f82"
-
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
     val api: ORSApiService by lazy {
         retrofit.create(ORSApiService::class.java)
     }
-
     // 4. Fetch route and return MapLibre-compatible coordinates
     fun getDirections(
         start: Pair<Double, Double>, // (longitude, latitude)
