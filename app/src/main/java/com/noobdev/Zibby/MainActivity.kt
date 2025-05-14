@@ -29,9 +29,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ZiggyTheme {
-                val navController = rememberNavController()
-                Navigation(navController)
-                RequestPermissions()
+                mapView()
             }
         }
     }
