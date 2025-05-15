@@ -1,6 +1,5 @@
 package com.noobdev.Zibby.geminiApi
 
-
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,10 +39,10 @@ data class BudgetRequest(
 )
 
 data class BudgetResponse(
-    val total_budget: Int,
-    val breakdown: Map<String, Int>,
-    val tips: List<String>,
-    val currency: String
+    val total_budget: Int = 0,
+    val breakdown: Map<String, Int>? = emptyMap(),
+    val tips: List<String>? = emptyList(),
+    val currency: String = "USD"
 )
 
 // Trip Planning Models
@@ -58,49 +57,49 @@ data class TripPlanRequest(
 )
 
 data class TripPlanResponse(
-    val destination_overview: String,
-    val daily_itinerary: List<DailyItineraryItem>,
-    val recommended_places: List<RecommendedPlace>,
-    val transportation_tips: List<String>,
-    val accommodation_suggestions: List<AccommodationSuggestion>
+    val destination_overview: String = "",
+    val daily_itinerary: List<DailyItineraryItem> = emptyList(),
+    val recommended_places: List<RecommendedPlace> = emptyList(),
+    val transportation_tips: List<String> = emptyList(),
+    val accommodation_suggestions: List<AccommodationSuggestion> = emptyList()
 ) {
     data class DailyItineraryItem(
-        val day: Int,
-        val activities: List<Activity>,
-        val meals: List<Meal>,
+        val day: Int = 1,
+        val activities: List<Activity> = emptyList(),
+        val meals: List<Meal> = emptyList(),
         val notes: String? = null
     )
 
     data class Activity(
-        val time: String,
-        val name: String,
-        val description: String,
+        val time: String = "",
+        val name: String = "",
+        val description: String = "",
         val location: String? = null,
         val duration: String? = null,
         val cost: String? = null
     )
 
     data class Meal(
-        val type: String,
-        val suggestion: String,
+        val type: String = "",
+        val suggestion: String = "",
         val location: String? = null
     )
 
     data class RecommendedPlace(
-        val name: String,
-        val type: String,
-        val description: String,
+        val name: String = "",
+        val type: String = "",
+        val description: String = "",
         val location: String? = null,
         val rating: Double? = null,
         val image_url: String? = null
     )
 
     data class AccommodationSuggestion(
-        val name: String,
-        val type: String,
-        val price_range: String,
+        val name: String = "",
+        val type: String = "",
+        val price_range: String = "",
         val location: String? = null,
-        val amenities: List<String>? = null,
+        val amenities: List<String>? = emptyList(),
         val rating: Double? = null,
         val description: String? = null,
         val image_url: String? = null
@@ -116,14 +115,14 @@ data class TravelAdviceRequest(
 )
 
 data class TravelAdviceResponse(
-    val weather_info: String,
-    val local_customs: List<String>,
-    val safety_tips: List<String>,
-    val packing_suggestions: List<String>,
-    val visa_requirements: String,
-    val currency_info: String,
-    val health_recommendations: List<String>,
-    val answers_to_questions: Map<String, String>
+    val weather_info: String = "",
+    val local_customs: List<String> = emptyList(),
+    val safety_tips: List<String> = emptyList(),
+    val packing_suggestions: List<String> = emptyList(),
+    val visa_requirements: String = "",
+    val currency_info: String = "",
+    val health_recommendations: List<String> = emptyList(),
+    val answers_to_questions: Map<String, String> = emptyMap()
 )
 
 // Hotel Search Models
@@ -135,42 +134,42 @@ data class HotelSearchRequest(
 )
 
 data class HotelSearchResponse(
-    val search_info: SearchInfo,
-    val hotels: List<Hotel>,
-    val price_range: PriceRange,
-    val search_metadata: SearchMetadata,
-    val exchange_rates: Map<String, Double>,
-    val coordinates: Map<String, Double>
+    val search_info: SearchInfo = SearchInfo(),
+    val hotels: List<Hotel> = emptyList(),
+    val price_range: PriceRange = PriceRange(),
+    val search_metadata: SearchMetadata = SearchMetadata(),
+    val exchange_rates: Map<String, Double> = emptyMap(),
+    val coordinates: Map<String, Double> = emptyMap()
 ) {
     data class SearchInfo(
-        val location: String,
-        val check_in: String,
-        val check_out: String,
-        val guests: Int,
-        val search_date: String
+        val location: String = "",
+        val check_in: String = "",
+        val check_out: String = "",
+        val guests: Int = 0,
+        val search_date: String = ""
     )
 
     data class Hotel(
-        val name: String,
-        val address: String,
-        val rating: Double,
-        val price: String,
-        val description: String,
-        val amenities: List<String>,
+        val name: String = "",
+        val address: String = "",
+        val rating: Double = 0.0,
+        val price: String = "",
+        val description: String = "",
+        val amenities: List<String> = emptyList(),
         val image_url: String? = null,
         val reviews_count: Int? = null,
         val availability: String? = null
     )
 
     data class PriceRange(
-        val budget: String,
-        val mid_range: String,
-        val luxury: String
+        val budget: String = "",
+        val mid_range: String = "",
+        val luxury: String = ""
     )
 
     data class SearchMetadata(
-        val search_suggestions: List<String>,
-        val rendered_content: String
+        val search_suggestions: List<String> = emptyList(),
+        val rendered_content: String = ""
     )
 }
 
@@ -180,90 +179,90 @@ data class DestinationRequest(
 )
 
 data class DestinationResponse(
-    val name: String,
-    val country: String,
-    val description: String,
-    val highlights: List<String>,
-    val best_time_to_visit: String,
-    val language: String,
-    val currency: String,
-    val time_zone: String,
-    val weather_summary: String,
-    val safety_index: String,
-    val cost_level: String,
-    val photos: List<String>,
-    val local_phrases: Map<String, String>
+    val name: String = "",
+    val country: String = "",
+    val description: String = "",
+    val highlights: List<String> = emptyList(),
+    val best_time_to_visit: String = "",
+    val language: String = "",
+    val currency: String = "",
+    val time_zone: String = "",
+    val weather_summary: String = "",
+    val safety_index: String = "",
+    val cost_level: String = "",
+    val photos: List<String> = emptyList(),
+    val local_phrases: Map<String, String> = emptyMap()
 )
 
 // Weather Models
 data class WeatherResponse(
-    val location: String,
-    val temperature: Temperature,
-    val condition: String,
-    val humidity: Int,
-    val wind: Wind,
-    val forecast: List<ForecastDay>,
-    val updated_at: String,
-    val search_metadata: SearchMetadata
+    val location: String = "",
+    val temperature: Temperature = Temperature(),
+    val condition: String = "",
+    val humidity: Int = 0,
+    val wind: Wind = Wind(),
+    val forecast: List<ForecastDay> = emptyList(),
+    val updated_at: String = "",
+    val search_metadata: SearchMetadata = SearchMetadata()
 ) {
     data class Temperature(
-        val celsius: Double,
-        val fahrenheit: Double
+        val celsius: Double = 0.0,
+        val fahrenheit: Double = 0.0
     )
 
     data class Wind(
-        val speed: Double,
-        val direction: String,
-        val unit: String
+        val speed: Double = 0.0,
+        val direction: String = "",
+        val unit: String = ""
     )
 
     data class ForecastDay(
-        val date: String,
-        val condition: String,
-        val high_temp: Temperature,
-        val low_temp: Temperature,
-        val precipitation_chance: Int,
-        val sunrise: String,
-        val sunset: String
+        val date: String = "",
+        val condition: String = "",
+        val high_temp: Temperature = Temperature(),
+        val low_temp: Temperature = Temperature(),
+        val precipitation_chance: Int = 0,
+        val sunrise: String = "",
+        val sunset: String = ""
     )
 
     data class SearchMetadata(
-        val search_suggestions: List<String>,
-        val rendered_content: String
+        val search_suggestions: List<String> = emptyList(),
+        val rendered_content: String = ""
     )
 }
 
 // Attractions Models
 data class AttractionResponse(
-    val location: String,
-    val attractions: List<Attraction>,
-    val total_found: Int,
-    val radius_used: Int,
-    val coordinates: Coordinates
+    val location: String = "",
+    val attractions: List<Attraction> = emptyList(),
+    val total_found: Int = 0,
+    val radius_used: Int = 0,
+    val coordinates: Coordinates = Coordinates()
 ) {
     data class Attraction(
-        val name: String,
-        val type: String,
-        val description: String,
-        val rating: Double,
-        val address: String,
-        val distance: Double,
-        val image_url: String?,
-        val website: String?,
-        val opening_hours: String?
+        val name: String = "",
+        val type: String = "",
+        val description: String = "",
+        val rating: Double = 0.0,
+        val address: String = "",
+        val distance: Double = 0.0,
+        val image_url: String? = null,
+        val website: String? = null,
+        val opening_hours: String? = null
     )
 
     data class Coordinates(
-        val latitude: Double,
-        val longitude: Double
+        val latitude: Double = 0.0,
+        val longitude: Double = 0.0
     )
 }
 
 // Exchange Rates Model
 data class ExchangeRatesResponse(
-    val base_currency: String,
-    val rates: Map<String, Double>,
-    val updated_at: String
+    val base_currency: String = "",
+    val rates: Map<String, Double> = emptyMap(),
+    val updated_at: String = ""
 )
 
 // Chatbot Models
@@ -272,34 +271,34 @@ data class ChatbotRequest(
 )
 
 data class ChatbotResponse(
-    val response: String,
-    val video_used: String
+    val response: String = "",
+    val video_used: String = ""
 )
 
 // YouTube Models
 data class YouTubeSearchResponse(
-    val videos: List<YouTubeVideo>
+    val videos: List<YouTubeVideo> = emptyList()
 ) {
     data class YouTubeVideo(
-        val id: String,
-        val title: String,
-        val description: String,
-        val thumbnail_url: String,
-        val channel_name: String,
-        val published_at: String,
-        val view_count: String,
-        val duration: String,
-        val url: String
+        val id: String = "",
+        val title: String = "",
+        val description: String = "",
+        val thumbnail_url: String = "",
+        val channel_name: String = "",
+        val published_at: String = "",
+        val view_count: String = "",
+        val duration: String = "",
+        val url: String = ""
     )
 }
 
 // Root Response
 data class RootResponse(
-    val api_name: String,
-    val version: String,
-    val status: String,
-    val documentation_url: String,
-    val timestamp: String
+    val api_name: String = "",
+    val version: String = "",
+    val status: String = "",
+    val documentation_url: String = "",
+    val timestamp: String = ""
 )
 
 // =================== API INTERFACE ===================
