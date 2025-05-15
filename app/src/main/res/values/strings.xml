@@ -1,4 +1,34 @@
 <resources>
     <string name="app_name">Ziggy</string>
     <string name="default_web_client_id">https://ziggy-34414-default-rtdb.firebaseio.com/</string>
+
+        <!-- Major cities -->
+        <string name="city_islamabad">Islamabad</string>
+        <string name="city_lahore">Lahore</string>
+        <string name="city_karachi">Karachi</string>
+        <string name="city_peshawar">Peshawar</string>
+        <string name="city_quetta">Quetta</string>
+        <string name="city_multan">Multan</string>
+        <string name="city_faisalabad">Faisalabad</string>
+        <string name="city_rawalpindi">Rawalpindi</string>
+        <string name="city_sialkot">Sialkot</string>
+        <string name="city_gujranwala">Gujranwala</string>
+
+        <!-- Other notable cities -->
+        <string name="city_sukkur">Sukkur</string>
+        <string name="city_hyderabad">Hyderabad</string>
+        <string name="city_mardan">Mardan</string>
+        <string name="city_bahawalpur">Bahawalpur</string>
+        <string name="city_swat">Swat</string>
+        <string name="city_murree">Murree</string>
+        <string name="city_abbottabad">Abbottabad</string>
+        <string name="city_gilgit">Gilgit</string>
+        <string name="city_skardu">Skardu</string>
+
+    <!--monuments-->
+    <string name="minar_e_pakistan">Minar-e-Pakistan</string>
+    <string name="pakistan_monument">Pakistan Monument</string>
+    <string name="badshahi_mosque">Badshahi Mosque</string>
+    <string name="mazar_e_quaid">Mazar-e-Quaid</string>
+    <string name="wazir_khan_mosque">Wazir Khan Mosque</string>
 </resources>
