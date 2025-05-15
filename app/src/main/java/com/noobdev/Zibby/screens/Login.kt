@@ -294,6 +294,7 @@ fun LoginContent(navController: NavController) {
         }
     }
 }
+
 @Composable
 fun Signup(navController: NavController) {
     val systemUiController = rememberSystemUiController()
