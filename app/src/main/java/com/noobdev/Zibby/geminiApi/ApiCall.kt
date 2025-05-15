@@ -174,34 +174,150 @@ data class HotelSearchResponse(
 }
 
 // Destination Info Models
+// Updated Destination Info Models
 data class DestinationRequest(
     val location: String
 )
 
 data class DestinationResponse(
-    val name: String = "",
-    val country: String = "",
-    val description: String = "",
-    val highlights: List<String> = emptyList(),
-    val best_time_to_visit: String = "",
-    val language: String = "",
-    val currency: String = "",
-    val time_zone: String = "",
-    val weather_summary: String = "",
-    val safety_index: String = "",
-    val cost_level: String = "",
-    val photos: List<String> = emptyList(),
-    val local_phrases: Map<String, String> = emptyMap()
-)
+    val destination: String = "",
+    val timestamp: String = "",
+    val coordinates: Coordinates = Coordinates(),
+    val destination_info: DestinationInfo = DestinationInfo(),
+    val weather: Weather = Weather(),
+    val exchange_rates: Map<String, Double> = emptyMap(),
+    val attractions: List<Attraction> = emptyList()
+) {
+    data class Coordinates(
+        val latitude: Double = 0.0,
+        val longitude: Double = 0.0
+    )
 
+    data class DestinationInfo(
+        val overview: String = "",
+        val best_time_to_visit: BestTimeToVisit = BestTimeToVisit(),
+        val local_customs: List<String> = emptyList(),
+        val transportation: Transportation = Transportation(),
+        val safety_tips: List<String> = emptyList(),
+        val must_see: List<String> = emptyList(),
+        val food_recommendations: List<FoodRecommendation> = emptyList(),
+        val search_metadata: SearchMetadata = SearchMetadata()
+    ) {
+        data class BestTimeToVisit(
+            val peak_season: String = "",
+            val shoulder_season: String = "",
+            val off_season: String = "",
+            val current_season: String = ""
+        )
+
+        data class Transportation(
+            val from_airport: String = "",
+            val within_city: String = "",
+            val regional: String = ""
+        )
+
+        data class FoodRecommendation(
+            val name: String = "",
+            val cuisine: String = "",
+            val price_range: String = ""
+        )
+
+        data class SearchMetadata(
+            val search_suggestions: List<String> = emptyList(),
+            val rendered_content: String = ""
+        )
+    }
+
+    data class Weather(
+        val location: String = "",
+        val temperature: Temperature = Temperature(),
+        val condition: String = "",
+        val humidity: Int = 0,
+        val wind: Wind = Wind(),
+        val forecast: List<WeatherForecast> = emptyList(),
+        val updated_at: String = "",
+        val search_metadata: SearchMetadata = SearchMetadata()
+    ) {
+        data class Temperature(
+            val celsius: Double = 0.0,
+            val fahrenheit: Double = 0.0
+        )
+
+        data class Wind(
+            val speed: Double? = 0.0,
+            val unit: String = "",
+            val direction: String? = ""
+        )
+
+        data class WeatherForecast(
+            val time: String = "",
+            val condition: String = "",
+            val temperature: Temperature = Temperature()
+        )
+
+        data class SearchMetadata(
+            val search_suggestions: List<String> = emptyList(),
+            val rendered_content: String = ""
+        )
+    }
+
+    data class Attraction(
+        val name: String = "",
+        val type: String = "",
+        val description: String = "",
+        val rating: Double = 0.0,
+        val address: String = "",
+        val distance: Double = 0.0
+    )
+
+    // For backward compatibility with your UI
+    val name: String get() = destination
+    val country: String get() = ""  // Could extract from destination if needed
+    val description: String get() = destination_info.overview
+    val highlights: List<String> get() = destination_info.must_see
+    val best_time_to_visit: String get() = formatBestTimeToVisit()
+    val language: String get() = ""  // Not directly available in the response
+    val currency: String get() = ""  // Not directly available in the response
+    val time_zone: String get() = ""  // Not directly available in the response
+    val weather_summary: String get() = weather.condition
+    val safety_index: String get() = ""  // Not directly available in the response
+    val cost_level: String get() = ""  // Not directly available in the response
+    val photos: List<String> get() = emptyList()  // Not directly available in the response
+    val local_phrases: Map<String, String> get() = emptyMap()  // Not directly available in the response
+
+    private fun formatBestTimeToVisit(): String {
+        val bestTime = destination_info.best_time_to_visit
+        return buildString {
+            if (bestTime.peak_season.isNotEmpty()) {
+                append("Peak season: ")
+                append(bestTime.peak_season)
+                append("\n\n")
+            }
+            if (bestTime.shoulder_season.isNotEmpty()) {
+                append("Shoulder season: ")
+                append(bestTime.shoulder_season)
+                append("\n\n")
+            }
+            if (bestTime.off_season.isNotEmpty()) {
+                append("Off season: ")
+                append(bestTime.off_season)
+                append("\n\n")
+            }
+            if (bestTime.current_season.isNotEmpty()) {
+                append("Current season: ")
+                append(bestTime.current_season)
+            }
+        }.trim()
+    }
+}
 // Weather Models
 data class WeatherResponse(
     val location: String = "",
     val temperature: Temperature = Temperature(),
     val condition: String = "",
-    val humidity: Int = 0,
+    val humidity: Double = 0.0, // Changed from Int to Double to match API
     val wind: Wind = Wind(),
-    val forecast: List<ForecastDay> = emptyList(),
+    val forecast: List<ForecastTime> = emptyList(), // Changed from ForecastDay to ForecastTime
     val updated_at: String = "",
     val search_metadata: SearchMetadata = SearchMetadata()
 ) {
@@ -211,19 +327,17 @@ data class WeatherResponse(
     )
 
     data class Wind(
-        val speed: Double = 0.0,
-        val direction: String = "",
-        val unit: String = ""
+        val speed: Double? = 0.0,
+        val direction: String? = "",
+        val unit: String? = ""
     )
 
-    data class ForecastDay(
-        val date: String = "",
+    // Updated to match the actual API response structure
+    data class ForecastTime(
+        val time: String = "",        // Using time instead of date
         val condition: String = "",
-        val high_temp: Temperature = Temperature(),
-        val low_temp: Temperature = Temperature(),
-        val precipitation_chance: Int = 0,
-        val sunrise: String = "",
-        val sunset: String = ""
+        val temperature: Temperature = Temperature()
+        // Note: No high_temp, low_temp, precipitation_chance, sunrise, sunset
     )
 
     data class SearchMetadata(
@@ -232,38 +346,112 @@ data class WeatherResponse(
     )
 }
 
-// Attractions Models
 data class AttractionResponse(
+    val features: List<Feature> = emptyList(),
+    // For backward compatibility
     val location: String = "",
-    val attractions: List<Attraction> = emptyList(),
     val total_found: Int = 0,
     val radius_used: Int = 0,
     val coordinates: Coordinates = Coordinates()
 ) {
-    data class Attraction(
+    data class Feature(
+        val xid: String = "",
         val name: String = "",
-        val type: String = "",
-        val description: String = "",
-        val rating: Double = 0.0,
-        val address: String = "",
-        val distance: Double = 0.0,
-        val image_url: String? = null,
-        val website: String? = null,
-        val opening_hours: String? = null
-    )
+        val dist: Double = 0.0,
+        val rate: Int = 0,
+        val osm: String? = null,
+        val wikidata: String? = null,
+        val kinds: String = "",
+        val point: Point = Point()
+    ) {
+        data class Point(
+            val lon: Double = 0.0,
+            val lat: Double = 0.0
+        )
+    }
 
     data class Coordinates(
         val latitude: Double = 0.0,
         val longitude: Double = 0.0
     )
+
+    // Map the new structure to the expected structure for backwards compatibility
+    val attractions: List<Attraction> get() {
+        return features.map { feature ->
+            Attraction(
+                name = feature.name.ifEmpty { "Unnamed Attraction" },
+                type = parseKinds(feature.kinds),
+                description = "ID: ${feature.xid}",  // No description in the response
+                rating = feature.rate.toDouble(),
+                address = "",  // No address in the response
+                distance = feature.dist,
+                image_url = null,
+                website = feature.wikidata?.let { "https://www.wikidata.org/wiki/$it" },
+                opening_hours = null
+            )
+        }
+    }
+
+    private fun parseKinds(kinds: String): String {
+        return kinds.split(",").firstOrNull()?.capitalize() ?: "Attraction"
+    }
 }
+
+data class Attraction(
+    val name: String = "",
+    val type: String = "",
+    val description: String = "",
+    val rating: Double = 0.0,
+    val address: String = "",
+    val distance: Double = 0.0,
+    val image_url: String? = null,
+    val website: String? = null,
+    val opening_hours: String? = null
+)
 
 // Exchange Rates Model
 data class ExchangeRatesResponse(
+    val result: String = "",
+    val documentation: String = "",
+    val terms_of_use: String = "",
+    val time_last_update_unix: Long = 0,
+    val time_last_update_utc: String = "",
+    val time_next_update_unix: Long = 0,
+    val time_next_update_utc: String = "",
+    val base_code: String = "",
+    val conversion_rates: Map<String, Double> = emptyMap(),
+
+    // Backward compatibility properties
     val base_currency: String = "",
     val rates: Map<String, Double> = emptyMap(),
     val updated_at: String = ""
-)
+) {
+    // Constructor to initialize backward compatibility fields
+    constructor(
+        result: String = "",
+        documentation: String = "",
+        terms_of_use: String = "",
+        time_last_update_unix: Long = 0,
+        time_last_update_utc: String = "",
+        time_next_update_unix: Long = 0,
+        time_next_update_utc: String = "",
+        base_code: String = "",
+        conversion_rates: Map<String, Double> = emptyMap()
+    ) : this(
+        result = result,
+        documentation = documentation,
+        terms_of_use = terms_of_use,
+        time_last_update_unix = time_last_update_unix,
+        time_last_update_utc = time_last_update_utc,
+        time_next_update_unix = time_next_update_unix,
+        time_next_update_utc = time_next_update_utc,
+        base_code = base_code,
+        conversion_rates = conversion_rates,
+        base_currency = base_code,
+        rates = conversion_rates,
+        updated_at = time_last_update_utc
+    )
+}
 
 // Chatbot Models
 data class ChatbotRequest(
@@ -634,6 +822,7 @@ class TravelRepository {
     }
 
     // Exchange Rates
+    // Exchange Rates
     suspend fun getExchangeRates(baseCurrency: String = "USD"): Result<ExchangeRatesResponse> = withContext(Dispatchers.IO) {
         try {
             Log.d(tag, "Getting exchange rates for base currency $baseCurrency")
@@ -642,7 +831,19 @@ class TravelRepository {
             if (response.isSuccessful) {
                 response.body()?.let {
                     Log.d(tag, "Exchange rates retrieved successfully")
-                    Result.success(it)
+                    // Create a properly initialized response with backward compatibility fields
+                    val result = ExchangeRatesResponse(
+                        result = it.result,
+                        documentation = it.documentation,
+                        terms_of_use = it.terms_of_use,
+                        time_last_update_unix = it.time_last_update_unix,
+                        time_last_update_utc = it.time_last_update_utc,
+                        time_next_update_unix = it.time_next_update_unix,
+                        time_next_update_utc = it.time_next_update_utc,
+                        base_code = it.base_code,
+                        conversion_rates = it.conversion_rates
+                    )
+                    Result.success(result)
                 } ?: Result.failure(Exception("Empty response body"))
             } else {
                 val errorMsg = "Error: ${response.code()} - ${response.message()}"

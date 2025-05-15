@@ -1055,7 +1055,8 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
     }
 }
 
-// Destination Screen
+
+// Destination Screen - Fixed to handle structured response data properly
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DestinationScreen(viewModel: TravelPlannerViewModel) {
@@ -1097,6 +1098,9 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
 
         // Show results
         viewModel.destinationInfoResult.value?.let { info ->
+            // Inspect the actual response structure
+            Log.d("DestinationScreen", "Got destination response: $info")
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1104,49 +1108,63 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Handle the nested destination_info structure
+                    val destinationName = if (info.name.isNotEmpty()) info.name else "Unknown location"
+
                     Text(
-                        "${info.name}, ${info.country}",
+                        text = destinationName,
                         fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(info.description)
 
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Highlights",
-                        fontWeight = FontWeight.Bold
-                    )
-                    info.highlights.forEach { highlight ->
-                        Text("• $highlight")
+                    if (info.description.isNotEmpty()) {
+                        Text(info.description)
+                    } else {
+                        Text("No description available")
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        "Best Time to Visit",
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(info.best_time_to_visit)
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Practical Information",
                         fontWeight = FontWeight.Bold
                     )
-                    Text("Language: ${info.language}")
-                    Text("Currency: ${info.currency}")
-                    Text("Time Zone: ${info.time_zone}")
-                    Text("Weather: ${info.weather_summary}")
-                    Text("Safety Index: ${info.safety_index}")
-                    Text("Cost Level: ${info.cost_level}")
+                    Text("Language: ${info.language.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Currency: ${info.currency.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Time Zone: ${info.time_zone.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Weather: ${info.weather_summary.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Safety Index: ${info.safety_index.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Cost Level: ${info.cost_level.takeIf { it.isNotEmpty() } ?: "Not specified"}")
 
+                    // Only show highlights if available
+                    if (info.highlights.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Highlights",
+                            fontWeight = FontWeight.Bold
+                        )
+                        info.highlights.forEach { highlight ->
+                            Text("• $highlight")
+                        }
+                    }
+
+                    // Only show best time to visit if available
+                    if (info.best_time_to_visit.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Best Time to Visit",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(info.best_time_to_visit)
+                    }
+
+                    // Only show local phrases if available
                     if (info.local_phrases.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Local Phrases",
                             fontWeight = FontWeight.Bold
                         )
-
                         info.local_phrases.entries.take(5).forEach { (phrase, translation) ->
                             Text("$phrase: $translation")
                         }
@@ -1173,7 +1191,6 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
         }
     }
 }
-
 // Weather Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1231,17 +1248,24 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
                     Text("Condition: ${weather.condition}")
                     Text("Temperature: ${weather.temperature.celsius}°C / ${weather.temperature.fahrenheit}°F")
                     Text("Humidity: ${weather.humidity}%")
-                    Text("Wind: ${weather.wind.speed} ${weather.wind.unit} ${weather.wind.direction}")
+
+                    // Safe access to Wind properties
+                    val windSpeed = weather.wind.speed ?: 0.0
+                    val windUnit = weather.wind.unit ?: "km/h"
+                    val windDirection = weather.wind.direction ?: "N/A"
+                    Text("Wind: $windSpeed $windUnit $windDirection")
+
                     Text("Updated at: ${weather.updated_at}")
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "Forecast",
-                        fontWeight = FontWeight.Bold
-                    )
-
+                    // Only show forecast if available
                     if (weather.forecast.isNotEmpty()) {
-                        weather.forecast.forEach { day ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Forecast",
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        weather.forecast.forEach { forecastTime ->
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -1249,15 +1273,13 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
                             ) {
                                 Column(modifier = Modifier.padding(8.dp)) {
-                                    Text("${day.date}: ${day.condition}")
-                                    Text("High: ${day.high_temp.celsius}°C / ${day.high_temp.fahrenheit}°F")
-                                    Text("Low: ${day.low_temp.celsius}°C / ${day.low_temp.fahrenheit}°F")
-                                    Text("Precipitation Chance: ${day.precipitation_chance}%")
-                                    Text("Sunrise: ${day.sunrise}, Sunset: ${day.sunset}")
+                                    Text("${forecastTime.time}: ${forecastTime.condition}")
+                                    Text("Temperature: ${forecastTime.temperature.celsius}°C / ${forecastTime.temperature.fahrenheit}°F")
                                 }
                             }
                         }
                     } else {
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text("No forecast data available")
                     }
                 }
@@ -1282,7 +1304,6 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
         }
     }
 }
-
 // Attractions Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1346,7 +1367,7 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
         }
 
         // Show results
-        viewModel.attractionsResult.value?.let { attractions ->
+        viewModel.attractionsResult.value?.let { attractionsResponse ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1355,31 +1376,35 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "Attractions near ${attractions.location}",
+                        "Attractions near $location",
                         fontWeight = FontWeight.Bold
                     )
 
-                    Text("Found ${attractions.total_found} attractions within ${attractions.radius_used}m")
-                    Text("Showing ${attractions.attractions.size} results")
+                    val features = attractionsResponse.features
+                    Text("Found ${features.size} attractions")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    if (attractions.attractions.isNotEmpty()) {
-                        attractions.attractions.forEach { attraction ->
+                    if (features.isNotEmpty()) {
+                        features.forEach { feature ->
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                            Text(attraction.name, fontWeight = FontWeight.Bold)
-                            Text("Type: ${attraction.type}")
-                            Text("Rating: ${attraction.rating}/5.0")
-                            Text("Distance: ${attraction.distance}m")
-                            Text(attraction.description)
+                            val displayName = if (feature.name.isNotEmpty()) feature.name else "Unnamed Attraction"
+                            Text(displayName, fontWeight = FontWeight.Bold)
 
-                            attraction.opening_hours?.let {
-                                Text("Hours: $it")
+                            val kindsList = feature.kinds.split(",")
+                            if (kindsList.isNotEmpty()) {
+                                Text("Type: ${kindsList.first().capitalize()}")
                             }
 
-                            attraction.website?.let {
-                                Text("Website: $it", color = MaterialTheme.colorScheme.primary)
+                            Text("Rating: ${feature.rate}/10")
+                            Text("Distance: ${feature.dist.toInt()}m")
+
+                            feature.wikidata?.let {
+                                Text(
+                                    "Wikidata: $it",
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
                         }
                     } else {
@@ -1388,7 +1413,6 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
                 }
             }
         }
-
 
         // Show error if any
         viewModel.errorMessage.value?.let { error ->
@@ -1411,6 +1435,13 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
     }
 }
 
+// Helper extension function
+fun String.capitalize(): String {
+    return this.replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase(Locale.getDefault())
+        else it.toString()
+    }
+}
 // Exchange Rates Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1488,18 +1519,21 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Use base_code from API response
                     Text(
-                        "Exchange Rates (Base: ${rates.base_currency})",
+                        "Exchange Rates (Base: ${rates.base_code})",
                         fontWeight = FontWeight.Bold
                     )
 
-                    Text("Updated at: ${rates.updated_at}")
+                    // Use time_last_update_utc from API response
+                    Text("Updated at: ${rates.time_last_update_utc}")
+                    Text("Next update: ${rates.time_next_update_utc}")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Display rates in a sorted manner
-                    if (rates.rates.isNotEmpty()) {
-                        rates.rates.entries.sortedBy { it.key }.forEach { (currency, rate) ->
+                    // Display rates in a sorted manner using conversion_rates from API
+                    if (rates.conversion_rates.isNotEmpty()) {
+                        rates.conversion_rates.entries.sortedBy { it.key }.forEach { (currency, rate) ->
                             Text("$currency: $rate")
                         }
                     } else {
@@ -1529,7 +1563,6 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // YouTube Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
