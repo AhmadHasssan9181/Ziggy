@@ -13,7 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.noobdev.Zibby.ui.theme.ZiggyTheme
+import com.noobdev.Zibby.ui.theme.ZibbyTheme
 import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
 
@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         )
         enableEdgeToEdge()
         setContent {
-            ZiggyTheme {
+            ZibbyTheme {
                 val navController = rememberNavController()
                 Navigation(navController)
                 RequestPermissions()
