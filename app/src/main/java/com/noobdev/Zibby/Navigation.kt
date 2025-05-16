@@ -5,8 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.noobdev.Zibby.screens.Forgot
-import com.noobdev.Zibby.screens.Home
-import com.noobdev.Zibby.screens.MainScreen
 import com.noobdev.Zibby.screens.Signup
 
 sealed class Screen(val route: String) {
@@ -23,7 +21,7 @@ fun Navigation(navController: NavHostController) {
         startDestination = Screen.Login.route
     ) {
         composable(Screen.Login.route) {
-            MainScreen(navController)
+            TravelMapScreen(navController)
         }
         composable(Screen.Signup.route) {
             Signup(navController)
@@ -32,7 +30,6 @@ fun Navigation(navController: NavHostController) {
             Forgot(navController)
         }
         composable(Screen.Home.route){
-            Home(navController)
         }
     }
 }
