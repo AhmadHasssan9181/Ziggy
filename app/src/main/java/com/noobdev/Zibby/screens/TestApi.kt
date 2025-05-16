@@ -1,5 +1,7 @@
 package com.noobdev.Zibby.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -49,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -76,6 +79,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 class TravelPlannerTestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,7 +93,6 @@ class TravelPlannerTestActivity : ComponentActivity() {
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelPlannerTestApp() {
@@ -178,7 +181,6 @@ fun TravelPlannerTestApp() {
         }
     }
 }
-
 // Budget Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -407,7 +409,6 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Trip Plan Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -641,7 +642,6 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Hotel Search Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -789,7 +789,6 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // More Options Screen (for additional endpoints)
 @Composable
 fun MoreOptionsScreen(navController: NavHostController) {
@@ -876,7 +875,6 @@ fun MoreOptionsScreen(navController: NavHostController) {
         }
     }
 }
-
 // Travel Advice Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1054,8 +1052,6 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
-
 // Destination Screen - Fixed to handle structured response data properly
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1434,7 +1430,6 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Helper extension function
 fun String.capitalize(): String {
     return this.replaceFirstChar {
@@ -1569,7 +1564,7 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
 fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
     var query by remember { mutableStateOf("travel tips paris") }
     var maxResults by remember { mutableStateOf("10") }
-
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -1633,19 +1628,34 @@ fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    result.videos.forEach { video ->
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    if (result.videos.isNotEmpty()) {
+                        result.videos.forEach { video ->
+                            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                        Text(video.title, fontWeight = FontWeight.Bold)
-                        Text("Channel: ${video.channel_name}")
-                        Text("Views: ${video.view_count} • Duration: ${video.duration}")
-                        Text("Published: ${video.published_at}")
-                        Text(video.description)
+                            Text(video.title, fontWeight = FontWeight.Bold)
+                            Text("Channel: ${video.channel_title}")
+                            Text("Published: ${formatPublishDate(video.publish_time)}")
 
-                        Text(
-                            "URL: ${video.url}",
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                            if (video.description.isNotEmpty()) {
+                                Text(video.description)
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Button(
+                                onClick = {
+                                    // Open YouTube app or browser with the video
+                                    openYouTubeVideo(context, video.video_id)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFF0000) // YouTube red color
+                                ),
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text("Watch on YouTube", color = Color.White)
+                            }
+                        }
+                    } else {
+                        Text("No videos found for your query")
                     }
                 }
             }
@@ -1671,8 +1681,42 @@ fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
+// Helper function to open a YouTube video in the YouTube app or browser
+fun openYouTubeVideo(context: android.content.Context, videoId: String) {
+    try {
+        // Try to open in the YouTube app
+        val youtubeAppIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoId"))
+        if (youtubeAppIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(youtubeAppIntent)
+        } else {
+            // If YouTube app is not available, open in browser
+            val youtubeBrowserIntent = Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://www.youtube.com/watch?v=$videoId"))
+            context.startActivity(youtubeBrowserIntent)
+        }
+    } catch (e: Exception) {
+        // If something goes wrong, fallback to browser
+        val fallbackIntent = Intent(Intent.ACTION_VIEW,
+            Uri.parse("https://www.youtube.com/watch?v=$videoId"))
+        context.startActivity(fallbackIntent)
+        Log.e("YouTubeScreen", "Error opening YouTube app: ${e.message}", e)
+    }
+}
+// Helper function to format the publish date
+fun formatPublishDate(dateString: String): String {
+    return try {
+        // Input format: 2025-05-15T08:01:01Z
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date = inputFormat.parse(dateString)
 
-// Chatbot Screen
+        // Output format: May 15, 2025
+        val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+        outputFormat.format(date ?: return dateString)
+    } catch (e: Exception) {
+        dateString // Return original string if parsing fails
+    }
+}// Chatbot Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
@@ -1793,7 +1837,6 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
         }
     }
 }
-
 // =================== VIEW MODEL ===================
 
 class TravelPlannerViewModel : ViewModel() {

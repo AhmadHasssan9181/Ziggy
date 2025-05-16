@@ -13,6 +13,9 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 /**
@@ -468,18 +471,38 @@ data class YouTubeSearchResponse(
     val videos: List<YouTubeVideo> = emptyList()
 ) {
     data class YouTubeVideo(
-        val id: String = "",
+        val video_id: String = "",
         val title: String = "",
         val description: String = "",
-        val thumbnail_url: String = "",
-        val channel_name: String = "",
-        val published_at: String = "",
-        val view_count: String = "",
-        val duration: String = "",
-        val url: String = ""
-    )
-}
+        val channel_title: String = "",
+        val publish_time: String = ""
+    ) {
+        // Backward compatibility fields
+        val id: String get() = video_id
+        val thumbnail_url: String get() = "https://i.ytimg.com/vi/$video_id/hqdefault.jpg" // Standard YouTube thumbnail URL
+        val channel_name: String get() = channel_title
+        val published_at: String get() = formatPublishDate(publish_time)
+        val view_count: String get() = "N/A" // Not available in the API response
+        val duration: String get() = "N/A" // Not available in the API response
+        val url: String get() = "https://www.youtube.com/watch?v=$video_id"
 
+        // Helper function to format the publish date
+        private fun formatPublishDate(dateString: String): String {
+            return try {
+                // Input format: 2025-05-15T08:01:01Z
+                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+                val date = inputFormat.parse(dateString)
+
+                // Output format: May 15, 2025
+                val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+                outputFormat.format(date ?: return dateString)
+            } catch (e: Exception) {
+                dateString // Return original string if parsing fails
+            }
+        }
+    }
+}
 // Root Response
 data class RootResponse(
     val api_name: String = "",
