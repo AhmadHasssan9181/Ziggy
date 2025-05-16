@@ -2,6 +2,7 @@ package com.noobdev.Zibby
 
 import android.R.attr.onClick
 import android.R.attr.scaleX
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
@@ -32,7 +34,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonDefaults.buttonColors
@@ -46,7 +48,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment // The main Alignment class
+import androidx.compose.ui.Alignment.Companion.BottomCenter
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.TopEnd
+import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusModifier
@@ -79,8 +85,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.noobdev.Zibby.Dataclasses.Monuments
 import com.noobdev.Zibby.Dataclasses.getMonuments
 import kotlinx.coroutines.launch
@@ -90,22 +103,27 @@ import kotlin.math.abs
 @Preview(showBackground = true)
 @Composable
 fun SiteCardsPreview() {
-    MainScreen()
+    val navController = rememberNavController()
+    MainScreen(navController)
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(navController: NavController) {
     val monuments= getMonuments()
-    Column (
+
+    // Use Box as the root container to position the BottomBar independently
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF3F3F3))
     ) {
+        // Main content in a scrollable column
         Column (
-            modifier= Modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment =Alignment.CenterHorizontally,
+                .padding(12.dp)
+                .padding(bottom = 70.dp), // Add bottom padding to avoid content being hidden by BottomBar
+            horizontalAlignment = Alignment.CenterHorizontally,
         ){
             topBar("Wajji")
             Spacer(modifier=Modifier.size(12.dp))
@@ -121,14 +139,147 @@ fun MainScreen() {
             Spacer(modifier=Modifier.size(12.dp))
             sitesRow(placeList)
             SitesCarousel(getMonuments())
-            bottomBar()
+            // BottomBar removed from here
+        }
+
+        // Position the BottomBar at the bottom of the screen
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            BottomBarFlush(navController) // Using a new function that creates a flush bottom bar
         }
     }
-    }
-
+}
 
 @Composable
+fun BottomBarFlush(navController: NavController) {
+    var selectedIndex by remember { mutableStateOf(0) } // Home selected by default
+    val orangeColor = Color(0xFFFF7700)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 0.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Home Icon (selected by default)
+            IconButton(
+                onClick = { selectedIndex = 0 },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (selectedIndex == 0) orangeColor else Color.Transparent,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = if (selectedIndex == 0) Color.White else orangeColor.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Search Icon
+            IconButton(
+                onClick = {  navController.navigate("map")
+                    selectedIndex = 1},
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (selectedIndex == 1) orangeColor else Color.Transparent,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocationOn,
+                    contentDescription = "Search",
+                    tint = if (selectedIndex == 1) Color.White else orangeColor.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Add Button (center)
+            IconButton(
+                onClick = { selectedIndex = 2
+                    navController.navigate("chat")
+                          },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (selectedIndex == 2) orangeColor else Color.Transparent,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Assistant,
+                    contentDescription = "Add",
+                    tint = if (selectedIndex == 2) Color.White else orangeColor.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Schedule/Clock Icon
+            IconButton(
+                onClick = { selectedIndex = 3 },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (selectedIndex == 3) orangeColor else Color.Transparent,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = "Recent",
+                    tint = if (selectedIndex == 3) Color.White else orangeColor.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Profile Icon
+            IconButton(
+                onClick = { selectedIndex = 4
+                          navController.navigate("settings")
+                          },
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        if (selectedIndex == 4) orangeColor else Color.Transparent,
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Profile",
+                    tint = if (selectedIndex == 4) Color.White else orangeColor.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+// Keep all other functions unchanged
+@Composable
 fun SiteCards(monument: Monuments) {
+    // Existing function unchanged
     Card(
         modifier = Modifier
             .height(400.dp)
@@ -278,6 +429,7 @@ fun SiteCards(monument: Monuments) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SitesCarousel(monuments: List<Monuments>) {
+    // Existing function unchanged
     // Create a "infinite" list by repeating monuments
     val infiniteMonuments = remember(monuments) {
         if (monuments.isEmpty()) emptyList() else {
@@ -460,9 +612,9 @@ fun topBar(User: String){
                 "Hello "+User,
                 fontWeight = FontWeight.Bold,
                 fontSize = 40.sp
-                )
+            )
             Text("Welcome to Ziggy")
-    }
+        }
         Image(
             painter = painterResource(R.drawable.img),
             contentDescription = "userId",
@@ -521,13 +673,14 @@ fun searchBar() {
 @Composable
 fun sitesRow(places: List<Places>) {
     var selectedIndex by remember { mutableStateOf(-1) }
+    val orangeColor = Color(0xFFFF7700)
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
     ) {
         itemsIndexed(places) { index, place ->
             val isSelected = index == selectedIndex
-            val backgroundColor = if (isSelected) Color.DarkGray else Color.White
+            val backgroundColor = if (isSelected) Color(0xFFFF7700) else Color.White
             val contentColor = if (isSelected) Color.White else Color.Gray
 
             Button(
@@ -543,59 +696,3 @@ fun sitesRow(places: List<Places>) {
         }
     }
 }
-
-
-@Composable
-fun bottomBar() {
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50.dp))
-                .background(Color.DarkGray)
-                .height(70.dp)
-                .width(330.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .background(Color.White, CircleShape)
-                    .clip(CircleShape)
-                    .size(50.dp)
-            )
-            {
-                Icon(Icons.Default.Home, contentDescription = "Home")
-            }
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .background(Color.White, CircleShape)
-                    .clip(CircleShape)
-                    .size(50.dp)
-
-            )
-            {
-                Icon(Icons.Default.List, contentDescription = "Menu")
-            }
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .background(Color.White, CircleShape)
-                    .clip(CircleShape)
-                    .size(50.dp)
-            )
-            {
-                Icon(Icons.Default.HeartBroken, contentDescription = "Liked")
-            }
-            IconButton(
-                onClick = {},
-                modifier = Modifier
-                    .background(Color.White, CircleShape)
-                    .clip(CircleShape)
-                    .size(50.dp)
-            )
-            {
-                Icon(Icons.Default.Settings, contentDescription = "Settings")
-            }
-        }
-    }

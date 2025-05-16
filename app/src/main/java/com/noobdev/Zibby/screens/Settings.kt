@@ -55,6 +55,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,10 +72,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color // Import Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.noobdev.Zibby.ui.theme.AppTheme
 import com.noobdev.Zibby.ui.theme.AutumnPalette
 import com.noobdev.Zibby.ui.theme.CyberpunkPalette
@@ -90,16 +93,26 @@ import com.noobdev.Zibby.ui.theme.SunsetPalette
 import com.noobdev.Zibby.ui.theme.ZibbyTheme
 import kotlinx.coroutines.delay
 
+// Define theme colors
+val lightGray1 = Color(0xFFF3F3F3)
+val darkGray1 = Color(0xFF444444)
+val orangeColor1 = Color(0xFFFF7700)
+val blueColor1 = Color(0xFF2196F3)
+val greenColor1 = Color(0xFF4CAF50)
+val purpleColor1 = Color(0xFF9C27B0)
+val amberColor1 = Color(0xFFFFB300)
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
     onBackPressed: () -> Unit = {},
     onThemeChanged: (AppTheme) -> Unit = {},
     onLanguageChanged: (String) -> Unit = {},
-    onSignOut: () -> Unit = {}
+    onSignOut: () -> Unit = {},
+    navController : NavController
 ) {
     val scrollState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     var showThemeDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showDistanceUnitDialog by remember { mutableStateOf(false) }
@@ -151,7 +164,8 @@ fun Settings(
                         Text(
                             "Settings",
                             style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = darkGray1 // Themed
                             )
                         )
                     },
@@ -159,17 +173,18 @@ fun Settings(
                         IconButton(onClick = onBackPressed) {
                             Icon(
                                 imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = "Back",
+                                tint = orangeColor1 // Themed
                             )
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
+                        containerColor = lightGray1, // Themed
                     )
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = lightGray1 // Themed
     ) { paddingValues ->
         // Main content
         LazyColumn(
@@ -257,7 +272,7 @@ fun ProfileCard(
             .padding(16.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = Color.White // Themed
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -270,8 +285,8 @@ fun ProfileCard(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
+                                orangeColor1, // Themed
+                                orangeColor1.copy(alpha = 0.7f) // Themed
                             )
                         )
                     )
@@ -289,7 +304,7 @@ fun ProfileCard(
                         .padding(top = 16.dp)
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface),
+                        .background(Color.White), // Themed (background for icon)
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -298,7 +313,7 @@ fun ProfileCard(
                         modifier = Modifier
                             .size(60.dp)
                             .alpha(0.8f),
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        tint = darkGray1.copy(alpha = 0.6f) // Themed
                     )
                 }
 
@@ -307,14 +322,15 @@ fun ProfileCard(
                 Text(
                     text = name,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = darkGray1 // Themed
                     )
                 )
 
                 Text(
                     text = email,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = darkGray1.copy(alpha = 0.7f) // Themed
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -323,8 +339,8 @@ fun ProfileCard(
                     onClick = onEditProfile,
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        containerColor = orangeColor1, // Themed
+                        contentColor = Color.White // Themed
                     ),
                     modifier = Modifier.height(48.dp)
                 ) {
@@ -356,7 +372,7 @@ fun SettingCategoryCard(category: SettingCategory) {
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.White // Themed
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -369,13 +385,13 @@ fun SettingCategoryCard(category: SettingCategory) {
                 text = category.title,
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = orangeColor1 // Themed
                 ),
                 modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
             )
 
             Divider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                color = darkGray1.copy(alpha = 0.1f), // Themed
                 thickness = 1.dp
             )
 
@@ -391,7 +407,7 @@ fun SettingCategoryCard(category: SettingCategory) {
                 if (index < category.items.size - 1) {
                     Divider(
                         modifier = Modifier.padding(start = 56.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                        color = darkGray1.copy(alpha = 0.05f), // Themed
                         thickness = 0.5.dp
                     )
                 }
@@ -413,9 +429,9 @@ fun SettingItemRow(
     }
 
     val textColor = if (item.isDestructive)
-        MaterialTheme.colorScheme.error
+        orangeColor1 // Themed (destructive usually red, but using orange as accent)
     else
-        MaterialTheme.colorScheme.onSurface
+        darkGray1 // Themed
 
     Row(
         modifier = Modifier
@@ -431,9 +447,9 @@ fun SettingItemRow(
                 .clip(CircleShape)
                 .background(
                     if (item.isDestructive)
-                        MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                        orangeColor1.copy(alpha = 0.1f) // Themed
                     else
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        orangeColor1.copy(alpha = 0.1f) // Themed
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -441,9 +457,9 @@ fun SettingItemRow(
                 imageVector = item.icon,
                 contentDescription = null,
                 tint = if (item.isDestructive)
-                    MaterialTheme.colorScheme.error
+                    orangeColor1 // Themed
                 else
-                    MaterialTheme.colorScheme.primary,
+                    orangeColor1, // Themed
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -461,7 +477,7 @@ fun SettingItemRow(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            tint = darkGray1.copy(alpha = 0.5f), // Themed
             modifier = Modifier.size(20.dp)
         )
     }
@@ -487,11 +503,13 @@ fun ThemeSelectionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White, // Themed
         title = {
             Text(
                 "Select Theme",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = darkGray1 // Themed
             )
         },
         text = {
@@ -509,20 +527,15 @@ fun ThemeSelectionDialog(
                                 .size(width = 60.dp, height = 24.dp)
                                 .clip(RoundedCornerShape(12.dp))
                         ) {
+                            // Using orange as a placeholder for theme previews, adjust if needed
                             val colors = when (theme) {
                                 AppTheme.SYSTEM -> if (isSystemInDarkTheme())
-                                    listOf(DarkColorScheme.primary, DarkColorScheme.secondary)
+                                    listOf(darkGray1, orangeColor1) // Example for dark system
                                 else
-                                    listOf(LightColorScheme.primary, LightColorScheme.secondary)
-                                AppTheme.CYBERPUNK -> listOf(CyberpunkPalette.primary, CyberpunkPalette.secondary)
-                                AppTheme.SUNSET -> listOf(SunsetPalette.primary, SunsetPalette.secondary)
-                                AppTheme.PASTEL -> listOf(PastelPalette.primary, PastelPalette.secondary)
-                                AppTheme.MIDNIGHT_GARDEN -> listOf(MidnightGardenPalette.primary, MidnightGardenPalette.secondary)
-                                AppTheme.FOREST -> listOf(ForestPalette.primary, ForestPalette.secondary)
-                                AppTheme.GALAXY -> listOf(GalaxyPalette.primary, GalaxyPalette.secondary)
-                                AppTheme.RETRO_WAVE -> listOf(RetroWavePalette.primary, RetroWavePalette.secondary)
-                                AppTheme.OCEAN -> listOf(OceanPalette.primary, OceanPalette.secondary)
-                                AppTheme.AUTUMN -> listOf(AutumnPalette.primary, AutumnPalette.secondary)
+                                    listOf(lightGray1, orangeColor1) // Example for light system
+                                // For other themes, you might want to use their actual primary/secondary
+                                // or just a consistent preview like orangeColor1 and its variant
+                                else -> listOf(orangeColor1, orangeColor1.copy(alpha = 0.7f))
                             }
 
                             Box(
@@ -543,7 +556,8 @@ fun ThemeSelectionDialog(
 
                         Text(
                             text = name,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = darkGray1 // Themed
                         )
                     }
                 }
@@ -551,7 +565,7 @@ fun ThemeSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCEL")
+                Text("CANCEL", color = orangeColor1) // Themed
             }
         }
     )
@@ -579,11 +593,13 @@ fun LanguageSelectionDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White, // Themed
         title = {
             Text(
                 "Select Language",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = darkGray1 // Themed
             )
         },
         text = {
@@ -598,7 +614,8 @@ fun LanguageSelectionDialog(
                     ) {
                         Text(
                             text = language,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = darkGray1 // Themed
                         )
                     }
                 }
@@ -606,7 +623,7 @@ fun LanguageSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCEL")
+                Text("CANCEL", color = orangeColor1) // Themed
             }
         }
     )
@@ -623,14 +640,19 @@ fun DistanceUnitDialog(
         "Meters (m)",
         "Feet (ft)"
     )
+    // This state would typically come from a ViewModel or be remembered higher up
+    var selectedUnit by remember { mutableStateOf(units.first()) }
+
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White, // Themed
         title = {
             Text(
                 "Distance Units",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = darkGray1 // Themed
             )
         },
         text = {
@@ -639,20 +661,31 @@ fun DistanceUnitDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onUnitSelected(unit) }
+                            .clickable {
+                                selectedUnit = unit
+                                onUnitSelected(unit)
+                            }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = unit == "Kilometers (km)",
-                            onClick = { onUnitSelected(unit) }
+                            selected = unit == selectedUnit,
+                            onClick = {
+                                selectedUnit = unit
+                                onUnitSelected(unit)
+                            },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = orangeColor1, // Themed
+                                unselectedColor = darkGray1.copy(alpha = 0.6f) // Themed
+                            )
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
                             text = unit,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = darkGray1 // Themed
                         )
                     }
                 }
@@ -660,12 +693,12 @@ fun DistanceUnitDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCEL")
+                Text("OK", color = orangeColor1) // Themed
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("OK")
+                Text("CANCEL", color = orangeColor1) // Themed
             }
         }
     )
@@ -683,10 +716,39 @@ data class SettingItem(
     val onClick: () -> Unit
 )
 
-@Preview(showBackground = true)
+
+// It's good practice to put ZibbyTheme in its own file, but if it's here for now:
+/*
 @Composable
-fun SettingsPreview() {
-    ZibbyTheme(appTheme = AppTheme.CYBERPUNK) {
-        Settings()
+fun ZibbyTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    appTheme: AppTheme = AppTheme.SYSTEM, // Default to system theme
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when (appTheme) {
+        AppTheme.SYSTEM -> if (darkTheme) DarkColorScheme else LightColorScheme
+        AppTheme.CYBERPUNK -> CyberpunkPalette
+        AppTheme.SUNSET -> SunsetPalette
+        AppTheme.PASTEL -> PastelPalette
+        AppTheme.MIDNIGHT_GARDEN -> MidnightGardenPalette
+        AppTheme.FOREST -> ForestPalette
+        AppTheme.GALAXY -> GalaxyPalette
+        AppTheme.RETRO_WAVE -> RetroWavePalette
+        AppTheme.OCEAN -> OceanPalette
+        AppTheme.AUTUMN -> AutumnPalette
     }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography, // Assuming you have Typography defined
+        content = content
+    )
 }
+*/
+
+// Dummy AppTheme enum if not defined elsewhere, for the preview to compile
+/*
+enum class AppTheme {
+    SYSTEM, CYBERPUNK, SUNSET, PASTEL, MIDNIGHT_GARDEN, FOREST, GALAXY, RETRO_WAVE, OCEAN, AUTUMN
+}
+*/

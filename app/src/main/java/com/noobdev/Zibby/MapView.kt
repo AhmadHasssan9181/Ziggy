@@ -4,10 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
-import android.util.Log
+// import android.util.Log // Removed Log import
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,16 +53,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -69,7 +68,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -142,8 +141,17 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 import java.util.Locale
 
+// Define theme colors
+val lightGray1 = Color(0xFFF3F3F3)
+val darkGray1 = Color(0xFF444444)
+val orangeColor1 = Color(0xFFFF7700)
+val blueColor1 = Color(0xFF2196F3)
+val greenColor1 = Color(0xFF4CAF50)
+val purpleColor1 = Color(0xFF9C27B0)
+val amberColor1 = Color(0xFFFFB300)
+
+// KEEP ALL ORIGINAL INTERFACES AND CLASSES UNCHANGED
 // PART 1: GEOCODING API SERVICE
-// Interface for the OpenCage geocoding service
 interface GeocodingApiService {
     @GET("geocode/v1/json")
     fun searchLocation(
@@ -198,17 +206,17 @@ object GeocodingClient {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.e("GeocodingClient", "Error parsing response: ${e.message}")
+                        // Log.e("GeocodingClient", "Error parsing response: ${e.message}") // Removed log
                     }
                     onResult(results)
                 } else {
-                    Log.e("GeocodingClient", "API Error: ${response.errorBody()?.string()}")
+                    // Log.e("GeocodingClient", "API Error: ${response.errorBody()?.string()}") // Removed log
                     onResult(emptyList())
                 }
             }
 
             override fun onFailure(call: Call<Map<String, Any>>, t: Throwable) {
-                Log.e("GeocodingClient", "Network Error: ${t.message}")
+                // Log.e("GeocodingClient", "Network Error: ${t.message}") // Removed log
                 onResult(emptyList())
             }
         })
@@ -278,7 +286,7 @@ object ORSClient {
                     val decodedRoute = route?.let { decodePolyline(it) }
                     onResult(decodedRoute)
                 } else {
-                    Log.e("ORS", "API Error: ${response.errorBody()?.string()}")
+                    // Log.e("ORS", "API Error: ${response.errorBody()?.string()}") // Removed log
 
                     // Fallback to simple route if API fails
                     val lineString = createSimpleRoute(start, end)
@@ -287,7 +295,7 @@ object ORSClient {
             }
 
             override fun onFailure(call: Call<ORSResponse>, t: Throwable) {
-                Log.e("ORS", "Network Error: ${t.message}")
+                // Log.e("ORS", "Network Error: ${t.message}") // Removed log
 
                 // Fallback to simple route if API fails
                 val lineString = createSimpleRoute(start, end)
@@ -319,7 +327,6 @@ object ORSClient {
 }
 
 // PART 3: VIEW MODEL INTERFACE
-// Common interface for view models that need map functionality
 interface MapViewModel {
     val currentLocation: StateFlow<Pair<Double, Double>?>
     val routeLineString: StateFlow<LineString?>
@@ -329,7 +336,6 @@ interface MapViewModel {
 }
 
 // PART 4: TRAVEL VIEW MODEL IMPLEMENTATION
-// Main view model for the travel explorer app
 class TravelViewModel(
     private val context: Context,
     private val savedStateHandle: SavedStateHandle
@@ -592,7 +598,6 @@ class TravelViewModel(
 }
 
 // PART 5: LOCATION-AWARE MAP COMPOSABLE
-// Composable for displaying the map and handling location updates
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LocationAwareMap(
@@ -708,7 +713,7 @@ fun LocationAwareMap(
                             style.addLayer(
                                 LineLayer("route-layer", "route-source").apply {
                                     setProperties(
-                                        PropertyFactory.lineColor("#4B89F0"),
+                                        PropertyFactory.lineColor("#FF7700"), // Changed to orange
                                         PropertyFactory.lineWidth(5f),
                                         PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                                         PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND)
@@ -716,7 +721,7 @@ fun LocationAwareMap(
                                 }
                             )
                         } catch (e: SecurityException) {
-                            e.printStackTrace()
+                            // e.printStackTrace() // Removed log
                             viewModel.updateErrorMessage("Location permission error: ${e.message}")
                         }
                     }
@@ -725,7 +730,8 @@ fun LocationAwareMap(
         },
         modifier = modifier
             .fillMaxWidth()
-            .height(350.dp),
+            .height(450.dp) // Increased map height to 450dp
+            .clip(RoundedCornerShape(8.dp)), // Added rounded corners
         update = { mapView ->
             routeLineString?.let { lineString ->
                 mapView.getMapAsync { map ->
@@ -755,7 +761,6 @@ fun LocationAwareMap(
 }
 
 // PART 6: TRAVEL MAP SCREEN
-// Main screen composable for the travel app
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelMapScreen(
@@ -769,7 +774,6 @@ fun TravelMapScreen(
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val focusManager = LocalFocusManager.current
 
     val currentLocation by viewModel.currentLocation.collectAsState()
@@ -785,275 +789,250 @@ fun TravelMapScreen(
 
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(errorMessage) {
-        errorMessage?.let {
-            snackbarHostState.showSnackbar(
-                message = it,
-                duration = SnackbarDuration.Short
+
+    Scaffold(
+        containerColor = lightGray1, // Set background to light gray using the original variable
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    if (isSearchActive) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Search for a location...", color = darkGray1.copy(alpha = 0.6f)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(
+                                onSearch = {
+                                    viewModel.searchDestination(searchQuery)
+                                    focusManager.clearFocus()
+                                }
+                            ),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = darkGray1,
+                                unfocusedTextColor = darkGray1,
+                                cursorColor = orangeColor1,
+                                focusedBorderColor = orangeColor1,
+                                unfocusedBorderColor = orangeColor1.copy(alpha = 0.7f), // Slightly lighter when not focused
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                disabledBorderColor = lightGray1
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = "Travel Explorer",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = darkGray1, // Using original color variable
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                navigationIcon = {
+                    if (isSearchActive) {
+                        IconButton(onClick = {
+                            viewModel.setSearchActive(false)
+                            searchQuery = ""
+                        }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = orangeColor1)
+                        }
+                    } else {
+                        IconButton(onClick = { /* Removed drawer, this button now just shows an icon */ }) {
+                            Icon(Icons.Default.Explore, contentDescription = "Explore", tint = orangeColor1)
+                        }
+                    }
+                },
+                actions = {
+                    if (isSearchActive) {
+                        IconButton(onClick = {
+                            viewModel.searchDestination(searchQuery)
+                        }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = orangeColor1)
+                        }
+                    } else {
+                        IconButton(onClick = { viewModel.setSearchActive(true) }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search", tint = orangeColor1)
+                        }
+                        IconButton(onClick = {
+                            // Recenter map on current location
+                        }) {
+                            Icon(Icons.Default.MyLocation, contentDescription = "My Location", tint = blueColor1)
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = darkGray1,
+                    actionIconContentColor = orangeColor1,
+                    navigationIconContentColor = orangeColor1
+                )
             )
         }
-    }
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Text(
-                    text = "Travel Explorer",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Divider()
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Explore, contentDescription = null) },
-                    label = { Text("Explore") },
-                    selected = true,
-                    onClick = {
-                        scope.launch { drawerState.close() }
-                    }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Place, contentDescription = null) },
-                    label = { Text("My Trips") },
-                    selected = false,
-                    onClick = {
-                        scope.launch {
-                            drawerState.close()
-                            // navController.navigate("myTrips")
-                        }
-                    }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Hotel, contentDescription = null) },
-                    label = { Text("Accommodation") },
-                    selected = false,
-                    onClick = {
-                        scope.launch {
-                            drawerState.close()
-                            // navController.navigate("hotels")
-                        }
-                    }
-                )
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Profile") },
-                    selected = false,
-                    onClick = {
-                        scope.launch {
-                            drawerState.close()
-                            // navController.navigate("profile")
-                        }
-                    }
-                )
-            }
-        }
-    ) {
-        Scaffold(
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                TopAppBar(
-                    title = {
-                        if (isSearchActive) {
-                            OutlinedTextField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                placeholder = { Text("Search for a location...") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(24.dp),
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                                keyboardActions = KeyboardActions(
-                                    onSearch = {
-                                        viewModel.searchDestination(searchQuery)
-                                        focusManager.clearFocus()
-                                    }
-                                )
-                            )
-                        } else {
-                            Text(
-                                text = "Travel Explorer",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                LocationAwareMap(
+                    viewModel = viewModel,
+                    onLocationUpdate = { location ->
+                        viewModel.updateCurrentLocation(location)
                     },
-                    navigationIcon = {
-                        if (isSearchActive) {
-                            IconButton(onClick = {
-                                viewModel.setSearchActive(false)
-                                searchQuery = ""
-                            }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                            }
-                        } else {
-                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                Icon(Icons.Default.Menu, contentDescription = "Menu")
-                            }
-                        }
-                    },
-                    actions = {
-                        if (isSearchActive) {
-                            IconButton(onClick = {
-                                viewModel.searchDestination(searchQuery)
-                            }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
-                            }
-                        } else {
-                            IconButton(onClick = { viewModel.setSearchActive(true) }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
-                            }
-                            IconButton(onClick = {
-                                // Recenter map on current location
-                            }) {
-                                Icon(Icons.Default.MyLocation, contentDescription = "My Location")
-                            }
-                        }
-                    }
-                )
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
+                        .fillMaxWidth()
+                        .height(450.dp) // Increased from 400dp to 450dp
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // Search results
+                AnimatedVisibility(
+                    visible = searchResults.isNotEmpty(),
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it })
                 ) {
-                    LocationAwareMap(
-                        viewModel = viewModel,
-                        onLocationUpdate = { location ->
-                            viewModel.updateCurrentLocation(location)
-                        },
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(350.dp)
-                    )
-
-                    // Search results
-                    AnimatedVisibility(
-                        visible = searchResults.isNotEmpty(),
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it })
+                            .heightIn(max = 300.dp)
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White), // White background for search results card
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 300.dp)
-                        ) {
+                        LazyColumn {
                             items(searchResults) { result ->
                                 ListItem(
-                                    headlineContent = { Text(result.name) },
+                                    headlineContent = { Text(result.name, color = darkGray1) }, // Dark gray text for search result item
                                     leadingContent = {
                                         Icon(
                                             Icons.Default.Place,
-                                            contentDescription = null
+                                            contentDescription = null,
+                                            tint = orangeColor1 // Orange icon
                                         )
                                     },
                                     modifier = Modifier.clickable {
                                         viewModel.selectSearchResult(result)
-                                    }
-                                )
-                                Divider()
-                            }
-                        }
-                    }
-
-                    // Main content: Selected destination or default screen
-                    if (selectedDestination != null) {
-                        // Show route information
-                        RouteInformation(
-                            destination = selectedDestination,
-                            onClearRoute = { viewModel.clearRoute() },
-                            onStartNavigation = {
-                                // Handle navigation start
-                            }
-                        )
-                    } else if (!isSearchActive && searchResults.isEmpty()) {
-                        // Show default content
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            item {
-                                // Current location card
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            "Your Location",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            currentAddress,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                }
-
-                                // Quick actions
-                                QuickActions()
-
-                                // Popular destinations
-                                Text(
-                                    "Popular Destinations",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                                )
-                            }
-
-                            items(popularDestinations) { destination ->
-                                DestinationItem(
-                                    destination = destination,
-                                    onClick = { viewModel.selectDestination(destination) }
-                                )
-                            }
-
-                            item {
-                                // Nearby attractions
-                                if (nearbyAttractions.isNotEmpty()) {
-                                    Text(
-                                        "Nearby Attractions",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                    },
+                                    colors = ListItemDefaults.colors(
+                                        containerColor = Color.White, // Ensure ListItem background is white
+                                        headlineColor = darkGray1, // Ensure headline text is dark gray
+                                        leadingIconColor = orangeColor1
                                     )
-                                }
-                            }
-
-                            items(nearbyAttractions) { attraction ->
-                                AttractionItem(
-                                    attraction = attraction,
-                                    onClick = { viewModel.selectDestination(attraction) }
                                 )
-                            }
-
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Divider(color = lightGray1) // Light gray divider
                             }
                         }
                     }
                 }
 
-                if (isLoading) {
-                    Box(
+                // Main content: Selected destination or default screen
+                if (selectedDestination != null) {
+                    // Show route information
+                    RouteInformation(
+                        destination = selectedDestination,
+                        onClearRoute = { viewModel.clearRoute() },
+                        onStartNavigation = {
+                            // Handle navigation start
+                        }
+                    )
+                } else if (!isSearchActive && searchResults.isEmpty()) {
+                    // Show default content
+                    LazyColumn(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 16.dp)
                     ) {
-                        CircularProgressIndicator()
+                        item {
+                            // Current location card
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        "Your Location",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = darkGray1
+                                    )
+                                    Text(
+                                        currentAddress,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
+                                        color = darkGray1
+                                    )
+                                }
+                            }
+
+                            // Quick actions
+                            QuickActions()
+
+                            // Popular destinations
+                            Text(
+                                "Popular Destinations",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                                color = darkGray1
+                            )
+                        }
+
+                        items(popularDestinations) { destination ->
+                            DestinationItem(
+                                destination = destination,
+                                onClick = { viewModel.selectDestination(destination) }
+                            )
+                        }
+
+                        item {
+                            // Nearby attractions
+                            if (nearbyAttractions.isNotEmpty()) {
+                                Text(
+                                    "Nearby Attractions",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                                    color = darkGray1
+                                )
+                            }
+                        }
+
+                        items(nearbyAttractions) { attraction ->
+                            AttractionItem(
+                                attraction = attraction,
+                                onClick = { viewModel.selectDestination(attraction) }
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
+                }
+            }
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .background(Color.Black.copy(alpha = 0.3f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = orangeColor1)
                 }
             }
         }
@@ -1061,7 +1040,6 @@ fun TravelMapScreen(
 }
 
 // PART 7: UI COMPONENTS
-// Search box composable
 @Composable
 fun SearchBox(
     query: String,
@@ -1076,11 +1054,11 @@ fun SearchBox(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        placeholder = { Text("Search for a location...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+        placeholder = { Text("Search for a location...", color = darkGray1.copy(alpha = 0.6f)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = orangeColor1) },
         trailingIcon = {
             IconButton(onClick = onSearch) {
-                Icon(Icons.Default.Navigation, contentDescription = "Search")
+                Icon(Icons.Default.Navigation, contentDescription = "Search", tint = orangeColor1)
             }
         },
         shape = RoundedCornerShape(16.dp),
@@ -1095,14 +1073,15 @@ fun SearchBox(
     )
 }
 
-// Quick actions composable
 @Composable
 fun QuickActions() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -1110,7 +1089,8 @@ fun QuickActions() {
             Text(
                 "Explore Nearby",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = darkGray1
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -1121,19 +1101,23 @@ fun QuickActions() {
             ) {
                 QuickActionItem(
                     icon = Icons.Default.Hotel,
-                    label = "Hotels"
+                    label = "Hotels",
+                    iconTint = blueColor1
                 )
                 QuickActionItem(
                     icon = Icons.Default.Restaurant,
-                    label = "Food"
+                    label = "Food",
+                    iconTint = greenColor1
                 )
                 QuickActionItem(
                     icon = Icons.Default.Attractions,
-                    label = "Sights"
+                    label = "Sights",
+                    iconTint = orangeColor1
                 )
                 QuickActionItem(
                     icon = Icons.Default.DirectionsWalk,
-                    label = "Tours"
+                    label = "Tours",
+                    iconTint = purpleColor1
                 )
             }
         }
@@ -1144,6 +1128,7 @@ fun QuickActions() {
 fun QuickActionItem(
     icon: ImageVector,
     label: String,
+    iconTint: Color = orangeColor1,
     onClick: () -> Unit = {}
 ) {
     Column(
@@ -1152,7 +1137,7 @@ fun QuickActionItem(
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = iconTint.copy(alpha = 0.1f),
             modifier = Modifier.size(48.dp)
         ) {
             Box(
@@ -1162,7 +1147,7 @@ fun QuickActionItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = label,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = iconTint,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -1171,12 +1156,12 @@ fun QuickActionItem(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = darkGray1
         )
     }
 }
 
-// Destination item composable
 @Composable
 fun DestinationItem(
     destination: TravelViewModel.TravelPlace,
@@ -1187,7 +1172,9 @@ fun DestinationItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -1198,13 +1185,13 @@ fun DestinationItem(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = orangeColor1.copy(alpha = 0.2f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = destination.name.first().toString(),
                         style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = orangeColor1
                     )
                 }
             }
@@ -1217,12 +1204,14 @@ fun DestinationItem(
                 Text(
                     text = destination.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = darkGray1
                 )
 
                 Text(
                     text = destination.location,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = darkGray1.copy(alpha = 0.7f)
                 )
 
                 Row(
@@ -1231,13 +1220,14 @@ fun DestinationItem(
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFB300),
+                        tint = amberColor1,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = destination.rating.toString(),
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = darkGray1
                     )
                 }
             }
@@ -1245,24 +1235,32 @@ fun DestinationItem(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = orangeColor1
             )
         }
     }
 }
 
-// Attraction item composable
 @Composable
 fun AttractionItem(
     attraction: TravelViewModel.TravelPlace,
     onClick: () -> Unit
 ) {
+    val iconTint = when (attraction.category.lowercase()) {
+        "museum" -> purpleColor1
+        "park" -> greenColor1
+        "restaurant" -> orangeColor1
+        else -> blueColor1
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -1270,7 +1268,7 @@ fun AttractionItem(
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = iconTint.copy(alpha = 0.2f),
                 modifier = Modifier.size(40.dp)
             ) {
                 Box(
@@ -1287,7 +1285,7 @@ fun AttractionItem(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
+                        tint = iconTint,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -1301,12 +1299,14 @@ fun AttractionItem(
                 Text(
                     text = attraction.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = darkGray1
                 )
 
                 Text(
                     text = "${attraction.distance} • ${attraction.category}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = darkGray1.copy(alpha = 0.7f)
                 )
             }
 
@@ -1316,20 +1316,20 @@ fun AttractionItem(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint = Color(0xFFFFB300),
+                    tint = amberColor1,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = attraction.rating.toString(),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = darkGray1
                 )
             }
         }
     }
 }
 
-// Route information composable
 @Composable
 fun RouteInformation(
     destination: TravelViewModel.TravelPlace?,
@@ -1341,8 +1341,9 @@ fun RouteInformation(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            shape = RoundedCornerShape(16.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -1355,41 +1356,48 @@ fun RouteInformation(
                         Text(
                             "Trip to ${destination.name}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = darkGray1
                         )
                         Text(
                             destination.location,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = darkGray1.copy(alpha = 0.7f)
                         )
                     }
                     IconButton(onClick = onClearRoute) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = orangeColor1)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(destination.description)
+                Text(destination.description, color = darkGray1)
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     RouteInfoItem(
                         icon = Icons.Default.DirectionsWalk,
                         label = "Distance",
-                        value = "12.5 km" // Mock data
+                        value = "12.5 km", // Mock data
+                        iconTint = blueColor1
                     )
                     RouteInfoItem(
                         icon = Icons.Default.Timer,
                         label = "Duration",
-                        value = "35 min" // Mock data
+                        value = "35 min", // Mock data
+                        iconTint = greenColor1
                     )
                     Button(
                         onClick = onStartNavigation,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                            containerColor = orangeColor1,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Text("Navigate")
                     }
@@ -1399,12 +1407,12 @@ fun RouteInformation(
     }
 }
 
-// Route info item composable
 @Composable
 fun RouteInfoItem(
     icon: ImageVector,
     label: String,
-    value: String
+    value: String,
+    iconTint: Color = orangeColor1
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1412,17 +1420,19 @@ fun RouteInfoItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = iconTint,
             modifier = Modifier.size(24.dp)
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = darkGray1.copy(alpha = 0.7f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = darkGray1
         )
     }
 }

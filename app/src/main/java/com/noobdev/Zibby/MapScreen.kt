@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Search
@@ -49,7 +50,12 @@ import org.maplibre.geojson.LineString
 import org.maplibre.geojson.Point
 import java.nio.file.WatchEvent
 
-
+// Theme colors
+val lightGray = Color(0xFFF3F3F3)
+val darkGray = Color(0xFF444444)
+val orangeColor = Color(0xFFFF7700)
+val blueColor = Color(0xFF2196F3)
+val greenColor = Color(0xFF4CAF50)
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
@@ -64,7 +70,9 @@ fun MapScreen() {
 
     AndroidView(
         factory = { mapView },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(lightGray)
     ) { view ->
         view.getMapAsync { mapLibreMap ->
             mapLibreMap.setStyle(Style.Builder().fromUri("https://demotiles.maplibre.org/style.json")) {
@@ -97,8 +105,8 @@ fun MapScreen() {
                             val geoJsonSource = GeoJsonSource("route-source", routeFeature)
                             val lineLayer = LineLayer("route-layer", "route-source")
                                 .withProperties(
-                                    org.maplibre.android.style.layers.PropertyFactory.lineColor("#FF0000"), // Use hex color for red
-                                    org.maplibre.android.style.layers.PropertyFactory.lineWidth(5f)
+                                    lineColor(orangeColor.toString()), // Use our theme orange color
+                                    lineWidth(5f)
                                 )
 
                             mapLibreMap.style?.apply {
@@ -116,35 +124,39 @@ fun MapScreen() {
 @Preview()
 @Composable
 fun mapView(){
-   Box(
-       modifier = Modifier
-           .fillMaxSize(),
-   ){
-       Column(
-           modifier = Modifier
-               .height(500.dp)
-               .width(350.dp)
-       ){
-           MapScreen()
-       }
-       to_where_card(Modifier.align(Alignment.TopCenter))
-   }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(lightGray),
+    ){
+        Column(
+            modifier = Modifier
+                .height(600.dp) // Made map taller
+                .fillMaxWidth()
+                .padding(16.dp)
+        ){
+            MapScreen()
+        }
+        to_where_card(Modifier.align(Alignment.TopCenter))
+    }
 }
 
 @Composable
 fun to_where_card(modifier: Modifier){
     Card(
-        modifier = Modifier
+        modifier = modifier
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .height(120.dp)
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            contentColor = Color.White,
-            containerColor = Color.Gray
-        )
+            containerColor = Color.White // White card background
+        ),
+        shape = RoundedCornerShape(8.dp), // Rounded corners like BudgetScreen
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ){
         Column(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(16.dp)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center
         ) {
@@ -156,18 +168,20 @@ fun to_where_card(modifier: Modifier){
             ){
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "null",
-                    modifier = Modifier
-                        .size(30.dp)
+                    contentDescription = "Search",
+                    modifier = Modifier.size(30.dp),
+                    tint = blueColor // Blue icon matching the theme
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text("Where to?",
-                    fontSize = 25.sp,
-                    modifier = Modifier
-                        .padding(4.dp))
+                    fontSize = 18.sp,
+                    color = darkGray, // Dark gray text
+                    modifier = Modifier.padding(4.dp))
             }
             Divider(
-                color = Color.White,
-                thickness = 1.dp
+                color = lightGray, // Light gray divider
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
             Row(
                 modifier = Modifier
@@ -177,19 +191,16 @@ fun to_where_card(modifier: Modifier){
             ){
                 Icon(
                     imageVector = Icons.Default.QuestionMark,
-                    contentDescription = "null",
-                    modifier = Modifier
-                        .size(30.dp)
+                    contentDescription = "From",
+                    modifier = Modifier.size(30.dp),
+                    tint = greenColor // Green icon matching the theme
                 )
+                Spacer(modifier = Modifier.width(8.dp))
                 Text("From Where?",
-                    fontSize = 25.sp,
-                    modifier = Modifier
-                        .padding(4.dp))
-
+                    fontSize = 18.sp,
+                    color = darkGray, // Dark gray text
+                    modifier = Modifier.padding(4.dp))
             }
-
         }
     }
 }
-
-
