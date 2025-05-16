@@ -1,47 +1,31 @@
 package com.noobdev.Zibby.screens
 
-import android.graphics.RectF
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Flight
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -55,13 +39,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,15 +50,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,13 +74,12 @@ import com.noobdev.Zibby.geminiApi.TravelRepository
 import com.noobdev.Zibby.geminiApi.TripPlanResponse
 import com.noobdev.Zibby.geminiApi.WeatherResponse
 import com.noobdev.Zibby.geminiApi.YouTubeSearchResponse
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-
+import java.util.TimeZone
 
 class TravelPlannerTestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -117,9 +93,6 @@ class TravelPlannerTestActivity : ComponentActivity() {
         }
     }
 }
-
-
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelPlannerTestApp() {
@@ -128,82 +101,49 @@ fun TravelPlannerTestApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Theme colors
-    val orangeColor = Color(0xFFFF7700) // Selected button background
-    val darkGray = Color(0xFF444444) // Unselected text color
-    val lightGray = Color(0xFFF3F3F3) // Background color
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(lightGray)
-    ) {
-        // Top navigation with rounded buttons
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Budget button
-                NavigationButton(
-                    text = "Budget",
-                    isSelected = currentRoute == "budget",
-                    onClick = { navController.navigate("budget") },
-                    orangeColor = orangeColor,
-                    darkGray = darkGray
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Travel Planner API Tester") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White
                 )
-
-                // Trip button
-                NavigationButton(
-                    text = "Trip",
-                    isSelected = currentRoute == "trip",
-                    onClick = { navController.navigate("trip") },
-                    orangeColor = orangeColor,
-                    darkGray = darkGray
+            )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    icon = { Text("Budget") },
+                    label = { Text("Budget") },
+                    selected = currentRoute == "budget",
+                    onClick = { navController.navigate("budget") }
                 )
-
-                // Hotels button
-                NavigationButton(
-                    text = "Hotels",
-                    isSelected = currentRoute == "hotels",
-                    onClick = { navController.navigate("hotels") },
-                    orangeColor = orangeColor,
-                    darkGray = darkGray
+                NavigationBarItem(
+                    icon = { Text("Trip") },
+                    label = { Text("Trip") },
+                    selected = currentRoute == "trip",
+                    onClick = { navController.navigate("trip") }
                 )
-
-                // More button
-                NavigationButton(
-                    text = "More",
-                    isSelected = currentRoute == "more" ||
-                            currentRoute == "advice" ||
-                            currentRoute == "destination" ||
-                            currentRoute == "weather" ||
-                            currentRoute == "attractions" ||
-                            currentRoute == "exchange" ||
-                            currentRoute == "youtube" ||
-                            currentRoute == "chatbot",
-                    onClick = { navController.navigate("more") },
-                    orangeColor = orangeColor,
-                    darkGray = darkGray
+                NavigationBarItem(
+                    icon = { Text("Hotels") },
+                    label = { Text("Hotels") },
+                    selected = currentRoute == "hotels",
+                    onClick = { navController.navigate("hotels") }
+                )
+                NavigationBarItem(
+                    icon = { Text("More") },
+                    label = { Text("More") },
+                    selected = currentRoute == "more",
+                    onClick = { navController.navigate("more") }
                 )
             }
         }
-
-        // Content area
+    ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "budget",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.padding(paddingValues)
         ) {
             composable("budget") {
                 BudgetScreen(viewModel)
@@ -241,38 +181,6 @@ fun TravelPlannerTestApp() {
         }
     }
 }
-
-@Composable
-fun NavigationButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    orangeColor: Color,
-    darkGray: Color
-) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) orangeColor else Color.White
-        ),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier
-            .height(40.dp)
-            .padding(horizontal = 4.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = if (isSelected) 6.dp else 0.dp
-        )
-    ) {
-        Text(
-            text = text,
-            color = if (isSelected) Color.White else darkGray,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            fontSize = 14.sp
-        )
-    }
-}
-
-
 // Budget Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -288,25 +196,11 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
     var origin by remember { mutableStateOf("Los Angeles") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for checkbox and button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.budgetResult.value) {
-        if (viewModel.budgetResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -316,295 +210,124 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Destination field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = destination,
+            onValueChange = { destination = it },
+            label = { Text("Destination") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Destination",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = destination,
-                onValueChange = { destination = it },
-                label = { Text("Destination", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Duration field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = durationDays,
+            onValueChange = { durationDays = it },
+            label = { Text("Duration (days)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.DateRange,
-                contentDescription = "Duration",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = durationDays,
-                onValueChange = { durationDays = it },
-                label = { Text("Duration (days)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Travelers field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = travelers,
+            onValueChange = { travelers = it },
+            label = { Text("Number of Travelers") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Person,
-                contentDescription = "Travelers",
-                tint = Color(0xFFFF9800),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = travelers,
-                onValueChange = { travelers = it },
-                label = { Text("Number of Travelers", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Budget level dropdown with icon
+        // Budget level dropdown
         var expanded by remember { mutableStateOf(false) }
         val budgetOptions = listOf("economy", "mid-range", "luxury")
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.AttachMoney,
-                contentDescription = "Budget Level",
-                tint = Color(0xFF8BC34A),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Box {
-                TextField(
-                    value = budgetLevel,
-                    onValueChange = { },
-                    label = { Text("Budget Level", color = placeholderColor) },
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.ArrowDropDown, "dropdown")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = textFieldBg,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                ) {
-                    budgetOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                budgetLevel = option
-                                expanded = false
-                            }
-                        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = budgetLevel,
+                onValueChange = { },
+                label = { Text("Budget Level") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Filled.ArrowDropDown, "dropdown")
                     }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                budgetOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            budgetLevel = option
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Origin field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = origin,
+            onValueChange = { origin = it },
+            label = { Text("Origin (optional)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Flight,
-                contentDescription = "Origin",
-                tint = Color(0xFF9C27B0),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = origin,
-                onValueChange = { origin = it },
-                label = { Text("Origin (optional)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Circular styled checkboxes
+        // Checkboxes
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeFlights,
+                onCheckedChange = { includeFlights = it }
+            )
             Text("Include Flights")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeFlights,
-                    onCheckedChange = { includeFlights = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeAccommodation,
+                onCheckedChange = { includeAccommodation = it }
+            )
             Text("Include Accommodation")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeAccommodation,
-                    onCheckedChange = { includeAccommodation = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeActivities,
+                onCheckedChange = { includeActivities = it }
+            )
             Text("Include Activities")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeActivities,
-                    onCheckedChange = { includeActivities = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeFood,
+                onCheckedChange = { includeFood = it }
+            )
             Text("Include Food")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeFood,
-                    onCheckedChange = { includeFood = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Generate Budget button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.generateBudget(
@@ -620,12 +343,11 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Generate Budget", color = Color.White, fontSize = 20.sp)
+            Text("Generate Budget", color = Color.White)
         }
 
         // Show results
@@ -634,36 +356,34 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Total Budget: ${budget.total_budget} ${budget.currency}",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Breakdown:", fontWeight = FontWeight.Bold, color = darkGray)
+                    Text("Breakdown:", fontWeight = FontWeight.Bold)
 
                     if (budget.breakdown != null && budget.breakdown.isNotEmpty()) {
                         budget.breakdown.forEach { (category, amount) ->
-                            Text("• $category: $amount ${budget.currency}", color = darkGray)
+                            Text("• $category: $amount ${budget.currency}")
                         }
                     } else {
-                        Text("No breakdown available", color = darkGray)
+                        Text("No breakdown available")
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Tips:", fontWeight = FontWeight.Bold, color = darkGray)
+                    Text("Tips:", fontWeight = FontWeight.Bold)
 
                     if (budget.tips != null && budget.tips.isNotEmpty()) {
                         budget.tips.forEach { tip ->
-                            Text("• $tip", color = darkGray)
+                            Text("• $tip")
                         }
                     } else {
-                        Text("No tips available", color = darkGray)
+                        Text("No tips available")
                     }
                 }
             }
@@ -689,7 +409,6 @@ fun BudgetScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Trip Plan Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -703,25 +422,11 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
     var includeTransportation by remember { mutableStateOf(true) }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for checkbox and button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.tripPlanResult.value) {
-        if (viewModel.tripPlanResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -731,230 +436,97 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Destination field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = destination,
+            onValueChange = { destination = it },
+            label = { Text("Destination") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Destination",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = destination,
-                onValueChange = { destination = it },
-                label = { Text("Destination", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Duration field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = durationDays,
+            onValueChange = { durationDays = it },
+            label = { Text("Duration (days)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.DateRange,
-                contentDescription = "Duration",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = durationDays,
-                onValueChange = { durationDays = it },
-                label = { Text("Duration (days)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Interests field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = interestsText,
+            onValueChange = { interestsText = it },
+            label = { Text("Interests (comma-separated)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Favorite,
-                contentDescription = "Interests",
-                tint = Color(0xFFE91E63),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = interestsText,
-                onValueChange = { interestsText = it },
-                label = { Text("Interests (comma-separated)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Travel style dropdown with icon
+        // Travel style dropdown
         var expanded by remember { mutableStateOf(false) }
         val styleOptions = listOf("relaxed", "adventurous", "cultural", "luxury", "budget")
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Style,
-                contentDescription = "Travel Style",
-                tint = Color(0xFF8BC34A),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Box {
-                TextField(
-                    value = travelStyle,
-                    onValueChange = { },
-                    label = { Text("Travel Style", color = placeholderColor) },
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.ArrowDropDown, "dropdown")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = textFieldBg,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                ) {
-                    styleOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                travelStyle = option
-                                expanded = false
-                            }
-                        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = travelStyle,
+                onValueChange = { },
+                label = { Text("Travel Style") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Filled.ArrowDropDown, "dropdown")
                     }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                styleOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            travelStyle = option
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Travel dates field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = travelDates,
+            onValueChange = { travelDates = it },
+            label = { Text("Travel Dates (optional)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.CalendarToday,
-                contentDescription = "Travel Dates",
-                tint = Color(0xFF9C27B0),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = travelDates,
-                onValueChange = { travelDates = it },
-                label = { Text("Travel Dates (optional)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Circular styled checkboxes
+        // Checkboxes
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeAccommodation,
+                onCheckedChange = { includeAccommodation = it }
+            )
             Text("Include Accommodation")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeAccommodation,
-                    onCheckedChange = { includeAccommodation = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start=14.dp,end=14.dp,top=8.dp,bottom=8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Checkbox(
+                checked = includeTransportation,
+                onCheckedChange = { includeTransportation = it }
+            )
             Text("Include Transportation")
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .background(Color.Transparent)
-            ) {
-                Checkbox(
-                    checked = includeTransportation,
-                    onCheckedChange = { includeTransportation = it },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = orangeColor,
-                        uncheckedColor = orangeColor.copy(alpha = 0.6f),
-                        checkmarkColor = Color.White
-                    ),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(2.dp)
-                        .clip(CircleShape)
-                )
-            }
         }
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Generate Trip Plan button with reduced width and increased height
         Button(
             onClick = {
                 val interests = interestsText.split(",").map { it.trim() }
@@ -969,12 +541,11 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Generate Trip Plan", color = Color.White, fontSize = 20.sp)
+            Text("Generate Trip Plan", color = Color.White)
         }
 
         // Show results
@@ -983,58 +554,54 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Destination Overview",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Text(tripPlan.destination_overview, color = darkGray)
+                    Text(tripPlan.destination_overview)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         "Daily Itinerary",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     if (tripPlan.daily_itinerary.isNotEmpty()) {
                         tripPlan.daily_itinerary.forEach { day ->
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Day ${day.day}", fontWeight = FontWeight.Bold, color = darkGray)
+                            Text("Day ${day.day}", fontWeight = FontWeight.Bold)
 
                             if (day.activities.isNotEmpty()) {
                                 day.activities.forEach { activity ->
-                                    Text("• ${activity.time}: ${activity.name}", color = darkGray)
-                                    Text("  ${activity.description}", color = darkGray)
+                                    Text("• ${activity.time}: ${activity.name}")
+                                    Text("  ${activity.description}")
                                 }
                             } else {
-                                Text("  No activities planned for this day", color = darkGray)
+                                Text("  No activities planned for this day")
                             }
                         }
                     } else {
-                        Text("No daily itinerary available", color = darkGray)
+                        Text("No daily itinerary available")
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
                         "Transportation Tips",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     if (tripPlan.transportation_tips.isNotEmpty()) {
                         tripPlan.transportation_tips.forEach { tip ->
-                            Text("• $tip", color = darkGray)
+                            Text("• $tip")
                         }
                     } else {
-                        Text("No transportation tips available", color = darkGray)
+                        Text("No transportation tips available")
                     }
 
                     if (tripPlan.accommodation_suggestions.isNotEmpty()) {
@@ -1042,14 +609,13 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
 
                         Text(
                             "Accommodation Suggestions",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
 
                         tripPlan.accommodation_suggestions.forEach { accommodation ->
-                            Text("• ${accommodation.name} (${accommodation.type})", color = darkGray)
-                            Text("  Price Range: ${accommodation.price_range}", color = darkGray)
-                            accommodation.description?.let { Text("  $it", color = darkGray) }
+                            Text("• ${accommodation.name} (${accommodation.type})")
+                            Text("  Price Range: ${accommodation.price_range}")
+                            accommodation.description?.let { Text("  $it") }
                         }
                     }
                 }
@@ -1076,7 +642,6 @@ fun TripPlanScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Hotel Search Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1087,25 +652,11 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
     var guests by remember { mutableStateOf("2") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.hotelSearchResult.value) {
-        if (viewModel.hotelSearchResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1115,112 +666,35 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Location field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Location",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Check-in Date field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = checkInDate,
+            onValueChange = { checkInDate = it },
+            label = { Text("Check-in Date (YYYY-MM-DD)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.DateRange,
-                contentDescription = "Check-in Date",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = checkInDate,
-                onValueChange = { checkInDate = it },
-                label = { Text("Check-in Date (YYYY-MM-DD)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Check-out Date field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = checkOutDate,
+            onValueChange = { checkOutDate = it },
+            label = { Text("Check-out Date (YYYY-MM-DD)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Event,
-                contentDescription = "Check-out Date",
-                tint = Color(0xFFFF9800),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = checkOutDate,
-                onValueChange = { checkOutDate = it },
-                label = { Text("Check-out Date (YYYY-MM-DD)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Guests field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = guests,
+            onValueChange = { guests = it },
+            label = { Text("Guests") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Person,
-                contentDescription = "Guests",
-                tint = Color(0xFF9C27B0),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = guests,
-                onValueChange = { guests = it },
-                label = { Text("Guests", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Search Hotels button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.searchHotels(
@@ -1231,12 +705,11 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Search Hotels", color = Color.White, fontSize = 20.sp)
+            Text("Search Hotels", color = Color.White)
         }
 
         // Show results
@@ -1245,55 +718,52 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Search Results for ${result.search_info.location}",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     Text(
-                        "${result.search_info.check_in} to ${result.search_info.check_out}, ${result.search_info.guests} guests",
-                        color = darkGray
+                        "${result.search_info.check_in} to ${result.search_info.check_out}, ${result.search_info.guests} guests"
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text("Price Ranges:", fontWeight = FontWeight.Bold, color = darkGray)
-                    Text("• Budget: ${result.price_range.budget}", color = darkGray)
-                    Text("• Mid-range: ${result.price_range.mid_range}", color = darkGray)
-                    Text("• Luxury: ${result.price_range.luxury}", color = darkGray)
+                    Text("Price Ranges:", fontWeight = FontWeight.Bold)
+                    Text("• Budget: ${result.price_range.budget}")
+                    Text("• Mid-range: ${result.price_range.mid_range}")
+                    Text("• Luxury: ${result.price_range.luxury}")
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Hotels Found: ${result.hotels.size}", fontWeight = FontWeight.Bold, color = darkGray)
+                    Text("Hotels Found: ${result.hotels.size}", fontWeight = FontWeight.Bold)
 
                     if (result.hotels.isNotEmpty()) {
                         result.hotels.forEach { hotel ->
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                            Text(hotel.name, fontWeight = FontWeight.Bold, color = darkGray)
-                            Text("Rating: ${hotel.rating}/5.0", color = darkGray)
-                            Text("Price: ${hotel.price}", color = darkGray)
-                            Text("Address: ${hotel.address}", color = darkGray)
-                            Text(hotel.description, color = darkGray)
+                            Text(hotel.name, fontWeight = FontWeight.Bold)
+                            Text("Rating: ${hotel.rating}/5.0")
+                            Text("Price: ${hotel.price}")
+                            Text("Address: ${hotel.address}")
+                            Text(hotel.description)
 
-                            Text("Amenities:", fontWeight = FontWeight.Medium, color = darkGray)
+                            Text("Amenities:", fontWeight = FontWeight.Medium)
                             if (hotel.amenities.isNotEmpty()) {
                                 hotel.amenities.take(3).forEach { amenity ->
-                                    Text("• $amenity", color = darkGray)
+                                    Text("• $amenity")
                                 }
                                 if (hotel.amenities.size > 3) {
-                                    Text("• +${hotel.amenities.size - 3} more", color = darkGray)
+                                    Text("• +${hotel.amenities.size - 3} more")
                                 }
                             } else {
-                                Text("• No amenities listed", color = darkGray)
+                                Text("• No amenities listed")
                             }
                         }
                     } else {
-                        Text("No hotels found matching your criteria", color = darkGray)
+                        Text("No hotels found matching your criteria")
                     }
                 }
             }
@@ -1319,127 +789,92 @@ fun HotelSearchScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // More Options Screen (for additional endpoints)
 @Composable
 fun MoreOptionsScreen(navController: NavHostController) {
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val orangeColor = Color(0xFFFF7700) // Orange color for buttons
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "More API Options",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = darkGray,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         Button(
             onClick = { navController.navigate("advice") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Travel Advice", color = Color.White, fontSize = 18.sp)
+            Text("Travel Advice", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("destination") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Destination Info", color = Color.White, fontSize = 18.sp)
+            Text("Destination Info", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("weather") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Weather", color = Color.White, fontSize = 18.sp)
+            Text("Weather", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("attractions") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Attractions", color = Color.White, fontSize = 18.sp)
+            Text("Attractions", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("exchange") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Exchange Rates", color = Color.White, fontSize = 18.sp)
+            Text("Exchange Rates", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("youtube") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("YouTube Search", color = Color.White, fontSize = 18.sp)
+            Text("YouTube Search", color = Color.White)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = { navController.navigate("chatbot") },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp)
+                .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Chatbot", color = Color.White, fontSize = 18.sp)
+            Text("Chatbot", color = Color.White)
         }
     }
 }
-
 // Travel Advice Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1450,141 +885,49 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
     var questionsText by remember { mutableStateOf("Is it safe for solo travelers?, What's the best time to visit?") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.travelAdviceResult.value) {
-        if (viewModel.travelAdviceResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Travel Advice",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Destination field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = destination,
+            onValueChange = { destination = it },
+            label = { Text("Destination") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Destination",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = destination,
-                onValueChange = { destination = it },
-                label = { Text("Destination", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Travel dates field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = travelDates,
+            onValueChange = { travelDates = it },
+            label = { Text("Travel Dates (optional)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.CalendarToday,
-                contentDescription = "Travel Dates",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = travelDates,
-                onValueChange = { travelDates = it },
-                label = { Text("Travel Dates (optional)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Duration field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = durationDays,
+            onValueChange = { durationDays = it },
+            label = { Text("Duration (days)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.DateRange,
-                contentDescription = "Duration",
-                tint = Color(0xFFFF9800),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = durationDays,
-                onValueChange = { durationDays = it },
-                label = { Text("Duration (days)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Questions field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = questionsText,
+            onValueChange = { questionsText = it },
+            label = { Text("Specific Questions (comma-separated)") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Help,
-                contentDescription = "Questions",
-                tint = Color(0xFF9C27B0),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = questionsText,
-                onValueChange = { questionsText = it },
-                label = { Text("Specific Questions (comma-separated)", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Get Advice button with reduced width and increased height
         Button(
             onClick = {
                 val questions = questionsText.split(",").map { it.trim() }
@@ -1596,12 +939,11 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Get Advice", color = Color.White, fontSize = 20.sp)
+            Text("Get Advice", color = Color.White)
         }
 
         // Show results
@@ -1610,92 +952,85 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Weather Information",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
-                    Text(advice.weather_info, color = darkGray)
+                    Text(advice.weather_info)
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Local Customs",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
                     if (advice.local_customs.isNotEmpty()) {
                         advice.local_customs.forEach { custom ->
-                            Text("• $custom", color = darkGray)
+                            Text("• $custom")
                         }
                     } else {
-                        Text("No local customs information available", color = darkGray)
+                        Text("No local customs information available")
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Safety Tips",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
                     if (advice.safety_tips.isNotEmpty()) {
                         advice.safety_tips.forEach { tip ->
-                            Text("• $tip", color = darkGray)
+                            Text("• $tip")
                         }
                     } else {
-                        Text("No safety tips available", color = darkGray)
+                        Text("No safety tips available")
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Packing Suggestions",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
                     if (advice.packing_suggestions.isNotEmpty()) {
                         advice.packing_suggestions.forEach { suggestion ->
-                            Text("• $suggestion", color = darkGray)
+                            Text("• $suggestion")
                         }
                     } else {
-                        Text("No packing suggestions available", color = darkGray)
+                        Text("No packing suggestions available")
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Visa Requirements",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
-                    Text(advice.visa_requirements, color = darkGray)
+                    Text(advice.visa_requirements)
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Currency Info",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
-                    Text(advice.currency_info, color = darkGray)
+                    Text(advice.currency_info)
 
                     if (advice.answers_to_questions.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Answers to Your Questions",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
 
                         advice.answers_to_questions.forEach { (question, answer) ->
-                            Text(question, fontWeight = FontWeight.Medium, color = darkGray)
-                            Text(answer, color = darkGray)
+                            Text(question, fontWeight = FontWeight.Medium)
+                            Text(answer)
                             Spacer(modifier = Modifier.height(4.dp))
                         }
                     }
                 }
             }
         }
+
 
         // Show error if any
         viewModel.errorMessage.value?.let { error ->
@@ -1717,8 +1052,6 @@ fun TravelAdviceScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
-
 // Destination Screen - Fixed to handle structured response data properly
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1726,125 +1059,88 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
     var location by remember { mutableStateOf("Barcelona") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.destinationInfoResult.value) {
-        if (viewModel.destinationInfoResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Destination Information",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Location field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Location",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Get Information button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.getDestinationInfo(location)
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Get Information", color = Color.White, fontSize = 20.sp)
+            Text("Get Information", color = Color.White)
         }
 
         // Show results
         viewModel.destinationInfoResult.value?.let { info ->
+            // Inspect the actual response structure
+            Log.d("DestinationScreen", "Got destination response: $info")
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Handle the nested destination_info structure
                     val destinationName = if (info.name.isNotEmpty()) info.name else "Unknown location"
 
                     Text(
                         text = destinationName,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     if (info.description.isNotEmpty()) {
-                        Text(info.description, color = darkGray)
+                        Text(info.description)
                     } else {
-                        Text("No description available", color = darkGray)
+                        Text("No description available")
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         "Practical Information",
-                        fontWeight = FontWeight.Bold,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
-                    Text("Language: ${info.language.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
-                    Text("Currency: ${info.currency.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
-                    Text("Time Zone: ${info.time_zone.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
-                    Text("Weather: ${info.weather_summary.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
-                    Text("Safety Index: ${info.safety_index.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
-                    Text("Cost Level: ${info.cost_level.takeIf { it.isNotEmpty() } ?: "Not specified"}", color = darkGray)
+                    Text("Language: ${info.language.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Currency: ${info.currency.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Time Zone: ${info.time_zone.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Weather: ${info.weather_summary.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Safety Index: ${info.safety_index.takeIf { it.isNotEmpty() } ?: "Not specified"}")
+                    Text("Cost Level: ${info.cost_level.takeIf { it.isNotEmpty() } ?: "Not specified"}")
 
                     // Only show highlights if available
                     if (info.highlights.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Highlights",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
                         info.highlights.forEach { highlight ->
-                            Text("• $highlight", color = darkGray)
+                            Text("• $highlight")
                         }
                     }
 
@@ -1853,10 +1149,9 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Best Time to Visit",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
-                        Text(info.best_time_to_visit, color = darkGray)
+                        Text(info.best_time_to_visit)
                     }
 
                     // Only show local phrases if available
@@ -1864,11 +1159,10 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             "Local Phrases",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
                         info.local_phrases.entries.take(5).forEach { (phrase, translation) ->
-                            Text("$phrase: $translation", color = darkGray)
+                            Text("$phrase: $translation")
                         }
                     }
                 }
@@ -1891,8 +1185,6 @@ fun DestinationScreen(viewModel: TravelPlannerViewModel) {
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 // Weather Screen
@@ -1902,73 +1194,37 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
     var location by remember { mutableStateOf("Tokyo") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.weatherResult.value) {
-        if (viewModel.weatherResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Weather Information",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Location field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Location",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Get Weather button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.getWeather(location)
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Get Weather", color = Color.White, fontSize = 20.sp)
+            Text("Get Weather", color = Color.White)
         }
 
         // Show results
@@ -1977,36 +1233,32 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Current Weather in ${weather.location}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Text("Condition: ${weather.condition}", color = darkGray)
-                    Text("Temperature: ${weather.temperature.celsius}°C / ${weather.temperature.fahrenheit}°F", color = darkGray)
-                    Text("Humidity: ${weather.humidity}%", color = darkGray)
+                    Text("Condition: ${weather.condition}")
+                    Text("Temperature: ${weather.temperature.celsius}°C / ${weather.temperature.fahrenheit}°F")
+                    Text("Humidity: ${weather.humidity}%")
 
                     // Safe access to Wind properties
                     val windSpeed = weather.wind.speed ?: 0.0
                     val windUnit = weather.wind.unit ?: "km/h"
                     val windDirection = weather.wind.direction ?: "N/A"
-                    Text("Wind: $windSpeed $windUnit $windDirection", color = darkGray)
+                    Text("Wind: $windSpeed $windUnit $windDirection")
 
-                    Text("Updated at: ${weather.updated_at}", color = darkGray)
+                    Text("Updated at: ${weather.updated_at}")
 
                     // Only show forecast if available
                     if (weather.forecast.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             "Forecast",
-                            fontWeight = FontWeight.Bold,
-                            color = darkGray
+                            fontWeight = FontWeight.Bold
                         )
 
                         weather.forecast.forEach { forecastTime ->
@@ -2017,14 +1269,14 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
                                 colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
                             ) {
                                 Column(modifier = Modifier.padding(8.dp)) {
-                                    Text("${forecastTime.time}: ${forecastTime.condition}", color = darkGray)
-                                    Text("Temperature: ${forecastTime.temperature.celsius}°C / ${forecastTime.temperature.fahrenheit}°F", color = darkGray)
+                                    Text("${forecastTime.time}: ${forecastTime.condition}")
+                                    Text("Temperature: ${forecastTime.temperature.celsius}°C / ${forecastTime.temperature.fahrenheit}°F")
                                 }
                             }
                         }
                     } else {
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("No forecast data available", color = darkGray)
+                        Text("No forecast data available")
                     }
                 }
             }
@@ -2046,8 +1298,6 @@ fun WeatherScreen(viewModel: TravelPlannerViewModel) {
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 // Attractions Screen
@@ -2059,116 +1309,43 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
     var limit by remember { mutableStateOf("20") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-
-    // Auto-scroll when results appear
-    LaunchedEffect(viewModel.attractionsResult.value) {
-        if (viewModel.attractionsResult.value != null) {
-            delay(300) // Small delay to ensure the UI has rendered
-            scrollState.animateScrollTo(scrollState.maxValue)
-        }
-    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Nearby Attractions",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Location field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.LocationOn,
-                contentDescription = "Location",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Radius field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = radius,
+            onValueChange = { radius = it },
+            label = { Text("Radius (meters, 1000-50000)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.RadioButtonChecked,
-                contentDescription = "Radius",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = radius,
-                onValueChange = { radius = it },
-                label = { Text("Radius (meters, 1000-50000)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Results limit field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = limit,
+            onValueChange = { limit = it },
+            label = { Text("Results Limit (1-50)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.FormatListNumbered,
-                contentDescription = "Results Limit",
-                tint = Color(0xFFFF9800),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = limit,
-                onValueChange = { limit = it },
-                label = { Text("Results Limit (1-50)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Find Attractions button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.getAttractions(
@@ -2178,12 +1355,11 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Find Attractions", color = Color.White, fontSize = 20.sp)
+            Text("Find Attractions", color = Color.White)
         }
 
         // Show results
@@ -2192,19 +1368,16 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "Attractions near $location",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     val features = attractionsResponse.features
-                    Text("Found ${features.size} attractions", color = darkGray)
+                    Text("Found ${features.size} attractions")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -2213,25 +1386,25 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
                             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
                             val displayName = if (feature.name.isNotEmpty()) feature.name else "Unnamed Attraction"
-                            Text(displayName, fontWeight = FontWeight.Bold, color = darkGray)
+                            Text(displayName, fontWeight = FontWeight.Bold)
 
                             val kindsList = feature.kinds.split(",")
                             if (kindsList.isNotEmpty()) {
-                                Text("Type: ${kindsList.first().capitalize()}", color = darkGray)
+                                Text("Type: ${kindsList.first().capitalize()}")
                             }
 
-                            Text("Rating: ${feature.rate}/10", color = darkGray)
-                            Text("Distance: ${feature.dist.toInt()}m", color = darkGray)
+                            Text("Rating: ${feature.rate}/10")
+                            Text("Distance: ${feature.dist.toInt()}m")
 
                             feature.wikidata?.let {
                                 Text(
                                     "Wikidata: $it",
-                                    color = orangeColor
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
                     } else {
-                        Text("No attractions found in this area", color = darkGray)
+                        Text("No attractions found in this area")
                     }
                 }
             }
@@ -2257,7 +1430,6 @@ fun AttractionsScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
 // Helper extension function
 fun String.capitalize(): String {
     return this.replaceFirstChar {
@@ -2272,25 +1444,17 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
     var baseCurrency by remember { mutableStateOf("USD") }
 
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Exchange Rates",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = darkGray,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -2298,68 +1462,47 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
         var expanded by remember { mutableStateOf(false) }
         val currencyOptions = listOf("USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY", "INR")
 
-        // Base currency field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.AttachMoney,
-                contentDescription = "Base Currency",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Box {
-                TextField(
-                    value = baseCurrency,
-                    onValueChange = { },
-                    label = { Text("Base Currency", color = placeholderColor) },
-                    readOnly = true,
-                    trailingIcon = {
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(Icons.Filled.ArrowDropDown, "dropdown")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = textFieldBg,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
-                )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                ) {
-                    currencyOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                baseCurrency = option
-                                expanded = false
-                            }
-                        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = baseCurrency,
+                onValueChange = { },
+                label = { Text("Base Currency") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Filled.ArrowDropDown, "dropdown")
                     }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth(0.9f)
+            ) {
+                currencyOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            baseCurrency = option
+                            expanded = false
+                        }
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Get Exchange Rates button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.getExchangeRates(baseCurrency)
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Get Exchange Rates", color = Color.White, fontSize = 20.sp)
+            Text("Get Exchange Rates", color = Color.White)
         }
 
         // Show results
@@ -2368,31 +1511,28 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     // Use base_code from API response
                     Text(
                         "Exchange Rates (Base: ${rates.base_code})",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
                     // Use time_last_update_utc from API response
-                    Text("Updated at: ${rates.time_last_update_utc}", color = darkGray)
-                    Text("Next update: ${rates.time_next_update_utc}", color = darkGray)
+                    Text("Updated at: ${rates.time_last_update_utc}")
+                    Text("Next update: ${rates.time_next_update_utc}")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Display rates in a sorted manner using conversion_rates from API
                     if (rates.conversion_rates.isNotEmpty()) {
                         rates.conversion_rates.entries.sortedBy { it.key }.forEach { (currency, rate) ->
-                            Text("$currency: $rate", color = darkGray)
+                            Text("$currency: $rate")
                         }
                     } else {
-                        Text("No exchange rates available", color = darkGray)
+                        Text("No exchange rates available")
                     }
                 }
             }
@@ -2424,84 +1564,37 @@ fun ExchangeRatesScreen(viewModel: TravelPlannerViewModel) {
 fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
     var query by remember { mutableStateOf("travel tips paris") }
     var maxResults by remember { mutableStateOf("10") }
-
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp)
+            .padding(16.dp)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "YouTube Search",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = darkGray,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Search query field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text("Search Query") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Search,
-                contentDescription = "Search Query",
-                tint = Color(0xFFE53935),  // YouTube red color
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = query,
-                onValueChange = { query = it },
-                label = { Text("Search Query", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Max results field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = maxResults,
+            onValueChange = { maxResults = it },
+            label = { Text("Max Results (1-10)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.FormatListNumbered,
-                contentDescription = "Max Results",
-                tint = Color(0xFF2196F3),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = maxResults,
-                onValueChange = { maxResults = it },
-                label = { Text("Max Results (1-10)", color = placeholderColor) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Search Videos button with reduced width and increased height
         Button(
             onClick = {
                 viewModel.searchYouTube(
@@ -2510,12 +1603,11 @@ fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(90.dp)
+                .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Search Videos", color = Color.White, fontSize = 20.sp)
+            Text("Search Videos", color = Color.White)
         }
 
         // Show results
@@ -2524,35 +1616,46 @@ fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                shape = RoundedCornerShape(8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "YouTube Search Results",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = darkGray
+                        fontWeight = FontWeight.Bold
                     )
 
-                    Text("Found ${result.videos.size} videos", color = darkGray)
+                    Text("Found ${result.videos.size} videos")
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    result.videos.forEach { video ->
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    if (result.videos.isNotEmpty()) {
+                        result.videos.forEach { video ->
+                            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                        Text(video.title, fontWeight = FontWeight.Bold, color = darkGray)
-                        Text("Channel: ${video.channel_name}", color = darkGray)
-                        Text("Views: ${video.view_count} • Duration: ${video.duration}", color = darkGray)
-                        Text("Published: ${video.published_at}", color = darkGray)
-                        Text(video.description, color = darkGray)
+                            Text(video.title, fontWeight = FontWeight.Bold)
+                            Text("Channel: ${video.channel_title}")
+                            Text("Published: ${formatPublishDate(video.publish_time)}")
 
-                        Text(
-                            "URL: ${video.url}",
-                            color = orangeColor,
-                            fontWeight = FontWeight.Medium
-                        )
+                            if (video.description.isNotEmpty()) {
+                                Text(video.description)
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Button(
+                                onClick = {
+                                    // Open YouTube app or browser with the video
+                                    openYouTubeVideo(context, video.video_id)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFF0000) // YouTube red color
+                                ),
+                                modifier = Modifier.padding(top = 8.dp)
+                            ) {
+                                Text("Watch on YouTube", color = Color.White)
+                            }
+                        }
+                    } else {
+                        Text("No videos found for your query")
                     }
                 }
             }
@@ -2578,8 +1681,42 @@ fun YouTubeScreen(viewModel: TravelPlannerViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
+// Helper function to open a YouTube video in the YouTube app or browser
+fun openYouTubeVideo(context: android.content.Context, videoId: String) {
+    try {
+        // Try to open in the YouTube app
+        val youtubeAppIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoId"))
+        if (youtubeAppIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(youtubeAppIntent)
+        } else {
+            // If YouTube app is not available, open in browser
+            val youtubeBrowserIntent = Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://www.youtube.com/watch?v=$videoId"))
+            context.startActivity(youtubeBrowserIntent)
+        }
+    } catch (e: Exception) {
+        // If something goes wrong, fallback to browser
+        val fallbackIntent = Intent(Intent.ACTION_VIEW,
+            Uri.parse("https://www.youtube.com/watch?v=$videoId"))
+        context.startActivity(fallbackIntent)
+        Log.e("YouTubeScreen", "Error opening YouTube app: ${e.message}", e)
+    }
+}
+// Helper function to format the publish date
+fun formatPublishDate(dateString: String): String {
+    return try {
+        // Input format: 2025-05-15T08:01:01Z
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date = inputFormat.parse(dateString)
 
-// Chatbot Screen
+        // Output format: May 15, 2025
+        val outputFormat = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+        outputFormat.format(date ?: return dateString)
+    } catch (e: Exception) {
+        dateString // Return original string if parsing fails
+    }
+}// Chatbot Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
@@ -2587,26 +1724,15 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
     var useContext by remember { mutableStateOf(false) }
     var chatHistory by remember { mutableStateOf(listOf<Pair<String, String>>()) }
 
-    val lightGray = Color(0xFFF3F3F3)
-    val darkGray = Color(0xFF444444)
-    val textFieldBg = Color.White
-    val placeholderColor = Color.DarkGray.copy(alpha = 0.6f)
-    val orangeColor = Color(0xFFFF7700) // Orange color for button
-    val userBubbleColor = Color(0xFFE3F2FD) // Light blue for user messages
-    val botBubbleColor = Color(0xFFF5F5F5) // Light gray for bot messages
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(lightGray)
-            .padding(20.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Travel Chatbot",
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = darkGray,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -2616,60 +1742,29 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
                 .fillMaxWidth()
                 .weight(1f)
                 .padding(vertical = 8.dp)
-                .background(Color.White, RoundedCornerShape(8.dp))
         ) {
             items(chatHistory) { (userMessage, botResponse) ->
-                // User message bubble
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp, horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterEnd
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE1F5FE)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f),
-                        colors = CardDefaults.cardColors(containerColor = userBubbleColor),
-                        shape = RoundedCornerShape(12.dp, 12.dp, 0.dp, 12.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("You",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = darkGray.copy(alpha = 0.7f)
-                            )
-                            Text(userMessage,
-                                color = darkGray,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
-                        }
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text("You: $userMessage", fontWeight = FontWeight.Bold)
                     }
                 }
 
-                // Bot message bubble
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp, horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f),
-                        colors = CardDefaults.cardColors(containerColor = botBubbleColor),
-                        shape = RoundedCornerShape(12.dp, 12.dp, 12.dp, 0.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Chatbot",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = orangeColor.copy(alpha = 0.9f)
-                            )
-                            Text(botResponse,
-                                color = darkGray,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
-                        }
+                    Column(modifier = Modifier.padding(8.dp)) {
+                        Text("Chatbot: $botResponse")
                     }
                 }
 
@@ -2677,9 +1772,6 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Use Context checkbox
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -2688,42 +1780,18 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
         ) {
             Checkbox(
                 checked = useContext,
-                onCheckedChange = { useContext = it },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = orangeColor,
-                    uncheckedColor = darkGray
-                )
+                onCheckedChange = { useContext = it }
             )
-            Text("Use Context", color = darkGray)
+            Text("Use Context")
         }
 
-        // Message field with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedTextField(
+            value = message,
+            onValueChange = { message = it },
+            label = { Text("Your Message") },
             modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                Icons.Filled.Message,
-                contentDescription = "Message",
-                tint = Color(0xFF4CAF50),
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            TextField(
-                value = message,
-                onValueChange = { message = it },
-                label = { Text("Your Message", color = placeholderColor) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = textFieldBg,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
-        }
+        )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // Send Message button with reduced width and increased height
         Button(
             onClick = {
                 if (message.isNotBlank()) {
@@ -2737,23 +1805,11 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
                 }
             },
             modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(70.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = orangeColor),
-            shape = RoundedCornerShape(8.dp)
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Send Message", color = Color.White, fontSize = 18.sp)
-                Icon(
-                    Icons.Filled.Send,
-                    contentDescription = "Send",
-                    tint = Color.White,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+            Text("Send Message", color = Color.White)
         }
 
         // Add new message to chat history
@@ -2781,7 +1837,6 @@ fun ChatbotScreen(viewModel: TravelPlannerViewModel) {
         }
     }
 }
-
 // =================== VIEW MODEL ===================
 
 class TravelPlannerViewModel : ViewModel() {
